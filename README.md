@@ -20,6 +20,6 @@ Made this small premise, our goal for the backrooms project is to involve as man
 ![image](https://user-images.githubusercontent.com/63969450/180204052-0ec5d05f-ce78-4fa7-bb3d-e30d70eae7ea.png)
 
 ## DMCA Protection Certificate
-![image](https://i.imgur.com/ZKgaF7B.png)
+![image](https://cdn.discordapp.com/attachments/1045063739738705940/1045095793050267769/image.png)
 
 ##### Copyright © 2022 Malibú Tech. All rights reserved.
