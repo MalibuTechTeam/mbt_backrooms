@@ -2,14 +2,17 @@
 -- (config.lua has already run by the time this client script loads).
 if MBT.RefreshLocale then MBT.RefreshLocale(MBT.Language) end
 
--- Seed the RNG once at startup, not on every interaction.
-math.randomseed(GetGameTimer())
-
 local isNear = false
 local nearestLocation = nil
+local nearestIndex = nil
+
+-- True while the server is moving us (set authoritatively via state bag).
+local function isLocked()
+    return LocalPlayer.state['mbt_backrooms:exitLocked'] == true
+end
 
 -------------------------------------------------------------------------------
--- Fall-through: pull players that glitch BELOW the map into the backrooms.
+-- Fall-through: detect a glitch below the map and REQUEST entry server-side.
 -------------------------------------------------------------------------------
 CreateThread(function()
     Wait(1000)
@@ -18,7 +21,7 @@ CreateThread(function()
         local sleep = 1000
         local playerPed = PlayerPedId()
 
-        if not IsEntityDead(playerPed) and DoesEntityExist(playerPed) then
+        if not IsEntityDead(playerPed) and DoesEntityExist(playerPed) and not isLocked() then
             local playerCoords = GetEntityCoords(playerPed)
 
             if playerCoords.z < MBT.FallingPoint then
@@ -34,7 +37,7 @@ CreateThread(function()
                     if isFalling then
                         sleep = 100
                         ClearPedTasksImmediately(playerPed)
-                        Utils.TeleportPlayer(playerPed, MBT.Coords[math.random(1, #MBT.Coords)])
+                        TriggerServerEvent('mbt_backrooms:requestEntry', { reason = 'fall' })
                     end
                 end
             end
@@ -45,21 +48,15 @@ CreateThread(function()
 end)
 
 -------------------------------------------------------------------------------
--- Enter / Exit interaction points.
+-- Enter / Exit interaction points — REQUEST, the server decides the destination.
 -------------------------------------------------------------------------------
 local function handleBackroomAction()
-    if not isNear or not nearestLocation then return end
+    if not isNear or not nearestLocation or not nearestIndex or isLocked() then return end
 
-    local playerPed = PlayerPedId()
-
-    if nearestLocation.Type == "Exit" then
-        if math.random(1, 100) <= MBT.ExitToBackroomChance then
-            Utils.TeleportPlayer(playerPed, MBT.Coords[math.random(1, #MBT.Coords)])
-        else
-            Utils.TeleportPlayer(playerPed, MBT.RandomExitPoint[math.random(1, #MBT.RandomExitPoint)])
-        end
-    elseif nearestLocation.Type == "Enter" then
-        Utils.TeleportPlayer(playerPed, MBT.Coords[math.random(1, #MBT.Coords)])
+    if nearestLocation.Type == 'Exit' then
+        TriggerServerEvent('mbt_backrooms:requestExit', { point = nearestIndex })
+    elseif nearestLocation.Type == 'Enter' then
+        TriggerServerEvent('mbt_backrooms:requestEntry', { reason = 'interact', point = nearestIndex })
     end
 end
 
@@ -74,12 +71,14 @@ CreateThread(function()
 
         isNear = false
         nearestLocation = nil
+        nearestIndex = nil
 
         for i = 1, #MBT.BackRooms do
             local location = MBT.BackRooms[i]
             if #(playerCoords - location.Coords) <= location.Range then
                 isNear = true
                 nearestLocation = location
+                nearestIndex = i
                 break
             end
         end
@@ -91,4 +90,23 @@ CreateThread(function()
 
         Wait(sleep)
     end
+end)
+
+-------------------------------------------------------------------------------
+-- Authoritative teleport dispatched by the server (with a screen transition).
+-------------------------------------------------------------------------------
+RegisterNetEvent('mbt_backrooms:doTeleport', function(coords)
+    local playerPed = PlayerPedId()
+
+    DoScreenFadeOut(400)
+    local guard = 1000
+    while not IsScreenFadedOut() and guard > 0 do
+        Wait(0)
+        guard = guard - 1
+    end
+
+    Utils.TeleportPlayer(playerPed, coords)
+
+    DoScreenFadeIn(600)
+    TriggerServerEvent('mbt_backrooms:teleportDone')
 end)

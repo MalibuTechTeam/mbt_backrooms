@@ -9,6 +9,10 @@ description 'mbt_backrooms'
 
 this_is_a_map 'yes'
 
+dependencies {
+  '/onesync'
+}
+
 files {
   'interiorproxies.meta'
 }
@@ -17,6 +21,11 @@ shared_scripts {
   'locales/*.lua',
   'modules/locales.lua',
   'config.lua'
+}
+
+server_scripts {
+  'modules/utils/server.lua',
+  'core/server.lua'
 }
 
 client_scripts {
