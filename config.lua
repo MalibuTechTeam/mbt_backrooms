@@ -94,6 +94,14 @@ MBT.NoClipZones = {
 --   'cut'              -> hard cut (the original v1 behaviour)
 MBT.Transition = 'glitch'
 
+-- Camera while inside a level. First person is the found-footage / Backrooms
+-- view: more immersive and the VHS overlay reads as "your eyes". Restored to
+-- the player's previous view on exit.
+MBT.Camera = {
+    ForceFirstPerson = true, -- switch to first person on entry
+    Lock             = true, -- prevent switching back to third person while inside
+}
+
 MBT.Atmosphere = {
     Enabled = true,
 
@@ -138,4 +146,24 @@ MBT.Atmosphere = {
         Drone        = { enabled = true,  source = 'nui', volume = 0.35 },
         EntrySting   = { enabled = true,  source = 'nui', volume = 0.7 },
     },
+}
+
+-------------------------------------------------------------------------------
+-- [ SECTION 4: SANITY ] --
+-------------------------------------------------------------------------------
+
+-- Server-authoritative "sanity" (0-100). Decays while inside a level (faster
+-- when alone), regenerates on the surface. Drives a closing-in vignette + camera
+-- shake at low values. Entities (F6) will subtract SmilerHit on a sighting.
+MBT.Sanity = {
+    Enabled        = true,
+    DecayPerMinute = 8,    -- base erosion while inside a level
+    IsolationMult  = 1.6,  -- decay multiplier when you're alone in your level
+    RegenOnSurface = 25,   -- recovery per minute once back on the surface
+    SmilerHit      = 15,   -- instant loss on an entity glimpse (used by F6)
+
+    LowThreshold      = 50, -- vignette starts ramping below this sanity
+    CriticalThreshold = 20, -- camera shake / heavier distortion below this
+
+    PersistAcrossSessions = false, -- requires the framework bridge (2.1)
 }

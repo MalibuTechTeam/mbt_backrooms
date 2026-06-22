@@ -36,7 +36,8 @@ server_scripts {
   'modules/bridge/qbx/server.lua',
   'modules/bridge/custom/server.lua',
   'modules/inventory/server.lua',
-  'core/server.lua'
+  'core/server.lua',
+  'modules/sanity/server.lua'
 }
 
 client_scripts {
@@ -44,5 +45,6 @@ client_scripts {
   'modules/bridge/custom/client.lua',
   'modules/atmosphere/client.lua',
   'modules/interaction/client.lua',
+  'modules/sanity/client.lua',
   'core/client.lua'
 }

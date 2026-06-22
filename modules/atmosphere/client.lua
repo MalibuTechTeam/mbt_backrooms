@@ -5,8 +5,11 @@
 Atmosphere = Atmosphere or {}
 
 local A = MBT.Atmosphere
+local CAM = MBT.Camera or {}
 local active = false          -- are we currently inside a level?
 local flickerGen = 0         -- generation token to cancel pending flicker timeouts
+local cameraGen = 0          -- generation token for the first-person lock loop
+local prevViewMode = nil     -- player's camera view mode before we forced FP
 local activePostFx = nil     -- currently-playing AnimpostfxPlay name (for cleanup)
 
 -- Should this effect run given MBT.Atmosphere.Mode? Native-only/NUI-only effects
@@ -71,6 +74,23 @@ function Atmosphere.Enter(level)
         flickerLoop(flickerGen)
     end
 
+    -- First person (found-footage view), optionally locked.
+    if CAM.ForceFirstPerson then
+        prevViewMode = GetFollowPedCamViewMode()
+        SetFollowPedCamViewMode(4) -- 4 = first person
+        if CAM.Lock then
+            cameraGen = cameraGen + 1
+            local gen = cameraGen
+            CreateThread(function()
+                while gen == cameraGen and active do
+                    DisableControlAction(0, 0, true) -- INPUT_NEXT_CAMERA (block view switch)
+                    if GetFollowPedCamViewMode() ~= 4 then SetFollowPedCamViewMode(4) end
+                    Wait(0)
+                end
+            end)
+        end
+    end
+
     -- NUI
     local vhs = enabled(A.Effects.Vhs)
     SendNUIMessage({
@@ -93,9 +113,16 @@ function Atmosphere.Exit()
     -- Native cleanup
     ClearTimecycleModifier()
     flickerGen = flickerGen + 1            -- cancel pending flicker bursts
+    cameraGen = cameraGen + 1              -- stop the first-person lock loop
     SetArtificialLightsState(false)        -- never leave lights off
     StopGameplayCamShaking(true)
     if activePostFx then AnimpostfxStop(activePostFx); activePostFx = nil end
+
+    -- Restore the player's previous camera view.
+    if prevViewMode ~= nil then
+        SetFollowPedCamViewMode(prevViewMode)
+        prevViewMode = nil
+    end
 
     -- NUI
     SendNUIMessage({ action = 'atmosphere:stopAll' })
@@ -150,5 +177,6 @@ AddEventHandler('onResourceStop', function(resource)
     SetArtificialLightsState(false)
     StopGameplayCamShaking(true)
     if activePostFx then AnimpostfxStop(activePostFx) end
+    if prevViewMode ~= nil then SetFollowPedCamViewMode(prevViewMode) end
     SendNUIMessage({ action = 'atmosphere:stopAll' })
 end)
