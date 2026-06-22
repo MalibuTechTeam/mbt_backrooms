@@ -95,18 +95,46 @@ end)
 -------------------------------------------------------------------------------
 -- Authoritative teleport dispatched by the server (with a screen transition).
 -------------------------------------------------------------------------------
-RegisterNetEvent('mbt_backrooms:doTeleport', function(coords)
+RegisterNetEvent('mbt_backrooms:doTeleport', function(coords, token)
     local playerPed = PlayerPedId()
 
     DoScreenFadeOut(400)
-    local guard = 1000
-    while not IsScreenFadedOut() and guard > 0 do
+    local deadline = GetGameTimer() + 1000
+    while not IsScreenFadedOut() and GetGameTimer() < deadline do
         Wait(0)
-        guard = guard - 1
     end
 
     Utils.TeleportPlayer(playerPed, coords)
 
     DoScreenFadeIn(600)
-    TriggerServerEvent('mbt_backrooms:teleportDone')
+    TriggerServerEvent('mbt_backrooms:teleportDone', token)
 end)
+
+-------------------------------------------------------------------------------
+-- TEMP debug helpers (remove before release). Fire requests directly so F1 can
+-- be tested from the chat box (the F8 console can't run raw Lua / table args).
+--   /brfall          — simulate a fall-through (entry, reason 'fall').
+--   /brenter [point] — request Enter at point index (default 1).
+--   /brexit  [point] — request Exit  at point index (default 1).
+-- Stand FAR from the point to verify the server's distance rejection; stand
+-- near it to verify a successful teleport. Spam either to test the rate limit.
+-------------------------------------------------------------------------------
+if MBT.Debug then
+    RegisterCommand('brfall', function()
+        if isLocked() then return end
+        Utils.MbtDebugger('brfall: requesting fall entry')
+        TriggerServerEvent('mbt_backrooms:requestEntry', { reason = 'fall' })
+    end, false)
+
+    RegisterCommand('brenter', function(_, args)
+        local point = tonumber(args[1]) or 1
+        Utils.MbtDebugger('brenter: requesting interact entry at point', point)
+        TriggerServerEvent('mbt_backrooms:requestEntry', { reason = 'interact', point = point })
+    end, false)
+
+    RegisterCommand('brexit', function(_, args)
+        local point = tonumber(args[1]) or 1
+        Utils.MbtDebugger('brexit: requesting exit at point', point)
+        TriggerServerEvent('mbt_backrooms:requestExit', { point = point })
+    end, false)
+end
