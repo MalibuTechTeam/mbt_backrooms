@@ -32,5 +32,3 @@ client_scripts {
   'modules/utils/client.lua',
   'core/client.lua'
 }
-
-escrow_ignore { 'config.lua', 'locales/*.lua' }
