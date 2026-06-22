@@ -13,8 +13,12 @@ dependencies {
   '/onesync'
 }
 
+ui_page 'web/dist/index.html'
+
 files {
-  'interiorproxies.meta'
+  'interiorproxies.meta',
+  'web/dist/index.html',
+  'web/dist/assets/**'
 }
 
 shared_scripts {

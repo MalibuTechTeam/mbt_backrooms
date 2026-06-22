@@ -1,0 +1,60 @@
+/* All layers are full-screen, passive, and opacity-scaled by --vhs-intensity.
+   Kept to CSS gradients + a stepped grain animation (no 60hz canvas) to stay
+   cheap inside CEF. */
+.vhs {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Horizontal scanlines */
+.vhs-scanlines {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 0px,
+    rgba(0, 0, 0, 0) 2px,
+    rgba(0, 0, 0, 0.18) 3px,
+    rgba(0, 0, 0, 0) 4px
+  );
+  opacity: calc(0.6 * var(--vhs-intensity, 1));
+  mix-blend-mode: multiply;
+}
+
+/* Liminal yellow-tinted vignette */
+.vhs-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(0, 0, 0, 0) 45%,
+    rgba(20, 16, 0, 0.55) 100%
+  );
+  opacity: calc(0.85 * var(--vhs-intensity, 1));
+}
+
+/* Stepped grain: animate a tiled noise via transform jitter at ~12fps feel.
+   Uses an inline SVG fractal-noise data URI so there's no external asset. */
+.vhs-grain {
+  position: absolute;
+  inset: -50%;
+  width: 200%;
+  height: 200%;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: calc(0.07 * var(--vhs-intensity, 1));
+  animation: vhs-grain-jitter 0.5s steps(4) infinite;
+}
+
+@keyframes vhs-grain-jitter {
+  0%   { transform: translate(0, 0); }
+  25%  { transform: translate(-3%, 2%); }
+  50%  { transform: translate(2%, -2%); }
+  75%  { transform: translate(-2%, -3%); }
+  100% { transform: translate(0, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vhs-grain { animation: none; }
+}
