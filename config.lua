@@ -66,6 +66,23 @@ MBT.BackRooms = {
     { Type = "Enter", Coords = vector3(3426.76, 5174.49, 7.41),   Range = 2.0 }
 }
 
+-- "No-clip" entry zones: invisible volumes in "wrong" spots (dead-end corners,
+-- behind walls, under stairs). Walking into one pulls you into the Backrooms —
+-- faithful to "noclip out of reality in the wrong areas". The SERVER validates
+-- your position, rolls `chance`, and enforces `dwell` (anti-exploit).
+--   coords : center of the volume
+--   size   : vector3 half-extents for a BOX, OR set `radius` for a SPHERE
+--   chance : % to clip once dwell is satisfied (100 = always)
+--   dwell  : seconds you must stay inside before clipping (0 = instant)
+--   marker : (optional) true -> draw a visible marker for this zone for everyone.
+--            All zones also show a marker automatically while MBT.Debug is on.
+-- Tip: use the /brhere debug command (needs MBT.Debug) to grab coords in-game.
+MBT.NoClipZones = {
+    -- { coords = vector3(195.0, -934.0, 30.7), size = vector3(1.2, 1.2, 2.0), chance = 100, dwell = 0 },
+    -- { coords = vector3(-1108.0, -2008.0, 13.2), radius = 1.5, chance = 30, dwell = 2 },
+    -- { coords = vector3(203.91, -931.36, 30.69), size = vector3(1.5, 1.5, 2.0), chance = 100, dwell = 0, marker = true },
+}
+
 -------------------------------------------------------------------------------
 -- [ SECTION 3: ATMOSPHERE ] --
 -------------------------------------------------------------------------------

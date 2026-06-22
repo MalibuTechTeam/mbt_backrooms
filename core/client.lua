@@ -149,6 +149,12 @@ if MBT.Debug then
         TriggerServerEvent('mbt_backrooms:requestExit', { point = point })
     end, false)
 
+    -- Print the player's current coords (to place MBT.NoClipZones).
+    RegisterCommand('brhere', function()
+        local c = GetEntityCoords(PlayerPedId())
+        Utils.MbtDebugger('brhere:', ('vector3(%.2f, %.2f, %.2f)'):format(c.x, c.y, c.z))
+    end, false)
+
     -- Preview a timecycle modifier live (to pick a good one for the atmosphere).
     --   /brtc <modifier> [strength]   e.g. /brtc scanline_cam 1.0
     --   /brtc off                     clears it

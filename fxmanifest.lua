@@ -43,5 +43,6 @@ client_scripts {
   'modules/utils/client.lua',
   'modules/bridge/custom/client.lua',
   'modules/atmosphere/client.lua',
+  'modules/interaction/client.lua',
   'core/client.lua'
 }

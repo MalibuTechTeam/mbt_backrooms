@@ -89,6 +89,73 @@ local function dispatchTeleport(src, coords, level)
     end)
 end
 
+-- No-clip zone state per player: { zone, passed } (passed=false means the
+-- chance roll for this entry already failed — no re-roll until they leave).
+local zoneState = {}
+
+local function inNoClipZone(src, index)
+    local z = MBT.NoClipZones and MBT.NoClipZones[index]
+    if not z then return false end
+    local ped = GetPlayerPed(src)
+    if not ped or ped == 0 then return false end
+    local c = GetEntityCoords(ped)
+    if z.radius then
+        return #(c - z.coords) <= (z.radius + 1.5)
+    end
+    local d = c - z.coords
+    return math.abs(d.x) <= (z.size.x + 1.5) and math.abs(d.y) <= (z.size.y + 1.5) and math.abs(d.z) <= (z.size.z + 1.5)
+end
+
+RegisterNetEvent('mbt_backrooms:zoneEnter', function(index)
+    local src = source
+    local z = MBT.NoClipZones and MBT.NoClipZones[index]
+    if not z then Utils.MbtDebugger('zoneEnter: no such zone', index); return end
+    if zoneState[src] then return end -- already handling a zone entry (anti re-roll spam)
+
+    local state = Player(src).state
+    if state[STATE_LOCKED] or state[STATE_INLEVEL] then
+        Utils.MbtDebugger('zoneEnter rejected: locked/inLevel', src)
+        return
+    end
+    if not inNoClipZone(src, index) then
+        Utils.MbtDebugger('zoneEnter rejected: not in zone (server pos check)', src, index)
+        return
+    end
+
+    -- Roll the chance ONCE per physical entry.
+    if math.random(1, 100) > (z.chance or 100) then
+        Utils.MbtDebugger('zoneEnter: chance failed', src, index)
+        zoneState[src] = { zone = index, passed = false }
+        return
+    end
+
+    local dwellMs = (z.dwell or 0) * 1000
+    if dwellMs <= 0 then
+        Utils.MbtDebugger('zoneEnter: teleporting (instant)', src, index)
+        zoneState[src] = nil
+        dispatchTeleport(src, pickBackroom())
+    else
+        zoneState[src] = { zone = index, passed = true }
+        SetTimeout(dwellMs, function()
+            local st = zoneState[src]
+            if not st or st.zone ~= index or not st.passed then return end
+            local s2 = Player(src).state
+            if s2[STATE_LOCKED] or s2[STATE_INLEVEL] or not inNoClipZone(src, index) then
+                zoneState[src] = nil
+                return
+            end
+            zoneState[src] = nil
+            dispatchTeleport(src, pickBackroom())
+        end)
+    end
+end)
+
+RegisterNetEvent('mbt_backrooms:zoneExit', function(index)
+    local src = source
+    local st = zoneState[src]
+    if st and st.zone == index then zoneState[src] = nil end
+end)
+
 RegisterNetEvent('mbt_backrooms:requestEntry', function(data)
     local src = source
     if not Utils.RateLimit(src, 'teleport', REQUEST_COOLDOWN) then return end
@@ -152,6 +219,7 @@ end)
 AddEventHandler('playerDropped', function()
     local src = source
     pendingTeleport[src] = nil
+    zoneState[src] = nil
     Utils.ClearRateLimit(src)
 end)
 
