@@ -97,16 +97,27 @@ end)
 -------------------------------------------------------------------------------
 RegisterNetEvent('mbt_backrooms:doTeleport', function(coords, token)
     local playerPed = PlayerPedId()
+    local mode = MBT.Transition or 'glitch'
 
-    DoScreenFadeOut(400)
-    local deadline = GetGameTimer() + 1000
-    while not IsScreenFadedOut() and GetGameTimer() < deadline do
-        Wait(0)
+    if mode == 'cut' then
+        Utils.TeleportPlayer(playerPed, coords)
+    else
+        DoScreenFadeOut(mode == 'glitch' and 250 or 400)
+        local deadline = GetGameTimer() + 1000
+        while not IsScreenFadedOut() and GetGameTimer() < deadline do
+            Wait(0)
+        end
+
+        Utils.TeleportPlayer(playerPed, coords)
+        DoScreenFadeIn(mode == 'glitch' and 500 or 600)
+
+        -- Reality-shift FX over the just-revealed scene (postfx + shake + NUI
+        -- glitch burst + sting) — feels like reality settling, not a hidden flash.
+        if mode == 'glitch' and Atmosphere and Atmosphere.EntryFx then
+            Atmosphere.EntryFx()
+        end
     end
 
-    Utils.TeleportPlayer(playerPed, coords)
-
-    DoScreenFadeIn(600)
     TriggerServerEvent('mbt_backrooms:teleportDone', token)
 end)
 
@@ -136,5 +147,21 @@ if MBT.Debug then
         local point = tonumber(args[1]) or 1
         Utils.MbtDebugger('brexit: requesting exit at point', point)
         TriggerServerEvent('mbt_backrooms:requestExit', { point = point })
+    end, false)
+
+    -- Preview a timecycle modifier live (to pick a good one for the atmosphere).
+    --   /brtc <modifier> [strength]   e.g. /brtc scanline_cam 1.0
+    --   /brtc off                     clears it
+    RegisterCommand('brtc', function(_, args)
+        ClearTimecycleModifier()
+        local mod = args[1]
+        if not mod or mod == 'off' then
+            Utils.MbtDebugger('timecycle cleared')
+            return
+        end
+        local strength = tonumber(args[2]) or 1.0
+        SetTimecycleModifier(mod)
+        SetTimecycleModifierStrength(strength)
+        Utils.MbtDebugger('timecycle:', mod, 'strength', strength)
     end, false)
 end

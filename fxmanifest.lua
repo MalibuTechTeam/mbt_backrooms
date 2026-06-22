@@ -18,7 +18,8 @@ ui_page 'web/dist/index.html'
 files {
   'interiorproxies.meta',
   'web/dist/index.html',
-  'web/dist/assets/**'
+  'web/dist/assets/**',
+  'web/dist/sounds/*.ogg'
 }
 
 shared_scripts {
@@ -41,5 +42,6 @@ server_scripts {
 client_scripts {
   'modules/utils/client.lua',
   'modules/bridge/custom/client.lua',
+  'modules/atmosphere/client.lua',
   'core/client.lua'
 }

@@ -65,3 +65,60 @@ MBT.BackRooms = {
     { Type = "Enter", Coords = vector3(1665.08, -28.03, 196.94),  Range = 2.0 },
     { Type = "Enter", Coords = vector3(3426.76, 5174.49, 7.41),   Range = 2.0 }
 }
+
+-------------------------------------------------------------------------------
+-- [ SECTION 3: ATMOSPHERE ] --
+-------------------------------------------------------------------------------
+
+-- Entry transition treatment, played on every teleport (the "reality shift").
+-- Backrooms entry should feel like reality failing, NOT a jumpscare.
+--   'glitch' (default) -> VHS/no-clip burst + postfx + shake + sting
+--   'fade'             -> simple screen fade
+--   'cut'              -> hard cut (the original v1 behaviour)
+MBT.Transition = 'glitch'
+
+MBT.Atmosphere = {
+    Enabled = true,
+
+    -- Which effect sources to use. Native-only effects (timecycle, light flicker,
+    -- camera shake) and NUI-only effects (VHS overlay, audio) ignore the
+    -- non-matching mode automatically.
+    --   'native' | 'nui' | 'mix' (default)
+    Mode = 'mix',
+
+    -- Global intensity per family (0.0 - 1.0).
+    Intensity = { Native = 0.85, NUI = 0.75, Audio = 0.55 },
+
+    -- Accessibility
+    ReduceMotion   = false, -- disables camera shake + screen-tear displacement
+    ReduceFlashing = false, -- disables light flicker + glitch strobe
+
+    Effects = {
+        -- NATIVE-ONLY ---------------------------------------------------------
+        -- Timecycle tint applied to the 3D world while inside. Picks from
+        -- `variants` on each entry per `select`:
+        --   'random'   -> a random variant every time (most disorienting, default)
+        --   'perLevel' -> each level index always gets the same variant (identity)
+        --   'fixed'    -> always the first variant
+        -- strength is per-variant (0.0-1.0), further scaled by Intensity.Native.
+        Timecycle = {
+            enabled = true,
+            source = 'native',
+            select = 'random',
+            variants = {
+                { modifier = 'scanline_cam_cheap',  strength = 1.0 },
+                { modifier = 'NG_blackout',          strength = 0.4 },
+                { modifier = 'prologue_ending_fog',  strength = 0.6 },
+            },
+        },
+        LightFlicker = { enabled = true,  source = 'native', minDelayMs = 3000, maxDelayMs = 10000, burstMinMs = 60, burstMaxMs = 400 },
+        EntryShake   = { enabled = true,  source = 'native', shake = 'SMALL_EXPLOSION_SHAKE', amplitude = 0.35, durationMs = 900 },
+        EntryPostFx  = { enabled = true,  source = 'native', name = 'DeathFailMPDark', durationMs = 900 },
+
+        -- NUI-ONLY ------------------------------------------------------------
+        Vhs          = { enabled = true,  source = 'nui', grain = true },
+        Hum          = { enabled = true,  source = 'nui', volume = 0.5 },
+        Drone        = { enabled = true,  source = 'nui', volume = 0.35 },
+        EntrySting   = { enabled = true,  source = 'nui', volume = 0.7 },
+    },
+}

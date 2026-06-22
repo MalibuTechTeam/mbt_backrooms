@@ -1,0 +1,56 @@
+/* Intense one-shot entry burst: near-opaque static + RGB-split bars that
+   fade out over ~900ms. Scaled by --g (NUI intensity). */
+.entry-glitch {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+  animation: entry-fade 900ms ease-out forwards;
+}
+
+.entry-glitch-static {
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: calc(0.85 * var(--g, 1));
+  mix-blend-mode: screen;
+  animation: entry-jitter 90ms steps(3) infinite;
+}
+
+/* Horizontal tear bars with a slight chromatic offset */
+.entry-glitch-bars {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 0, 60, 0.10) 0px,
+    rgba(0, 255, 200, 0.10) 2px,
+    rgba(0, 0, 0, 0.35) 5px,
+    rgba(0, 0, 0, 0) 9px
+  );
+  opacity: calc(0.7 * var(--g, 1));
+  animation: entry-bars 140ms steps(2) infinite;
+}
+
+@keyframes entry-fade {
+  0%   { opacity: 1; }
+  70%  { opacity: 0.9; }
+  100% { opacity: 0; }
+}
+
+@keyframes entry-jitter {
+  0%   { transform: translate(0, 0); }
+  33%  { transform: translate(-4%, 3%); }
+  66%  { transform: translate(3%, -2%); }
+  100% { transform: translate(0, 0); }
+}
+
+@keyframes entry-bars {
+  0%   { transform: translateY(0); }
+  100% { transform: translateY(-9px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .entry-glitch-static,
+  .entry-glitch-bars { animation: none; }
+}
