@@ -25,10 +25,17 @@ shared_scripts {
 
 server_scripts {
   'modules/utils/server.lua',
+  'modules/bridge/esx/server.lua',
+  'modules/bridge/ox/server.lua',
+  'modules/bridge/qb/server.lua',
+  'modules/bridge/qbx/server.lua',
+  'modules/bridge/custom/server.lua',
+  'modules/inventory/server.lua',
   'core/server.lua'
 }
 
 client_scripts {
   'modules/utils/client.lua',
+  'modules/bridge/custom/client.lua',
   'core/client.lua'
 }

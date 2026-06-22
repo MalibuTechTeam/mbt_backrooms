@@ -20,9 +20,17 @@ MBT.General = {
 -- fall from buildings / great heights.
 MBT.FallingPoint = 0.0
 
--- Chance (%) that an Exit point teleports you into ANOTHER backroom instead of
--- back to the surface. Faithful to the lore: getting out is not guaranteed.
-MBT.ExitToBackroomChance = 70
+-- Weighted destinations rolled when a player uses an Exit point. Faithful to
+-- the lore: getting out is not guaranteed. Weights are RELATIVE (any numbers).
+--   surface  -> escape to a random MBT.RandomExitPoint
+--   backroom -> dumped into a random backroom (stay trapped)
+-- `default` applies to every Exit; add a numeric key (the MBT.BackRooms index)
+-- to override a specific Exit point — e.g. make one exit rarely let you out.
+-- (Finer categories like 'deeper'/'poolrooms' arrive once levels have identity.)
+MBT.ExitRules = {
+    default = { surface = 30, backroom = 70 }, -- reproduces the v1 ~70% trapped
+    -- [1] = { surface = 5, backroom = 95 },   -- example: a near-inescapable exit
+}
 
 -- Interior spawn coords, one entry per backroom level.
 MBT.Coords = {
@@ -44,8 +52,8 @@ MBT.RandomExitPoint = {
 
 -- Interaction points placed around the map.
 --   Type = "Enter" -> always teleports into a random backroom.
---   Type = "Exit"  -> MBT.ExitToBackroomChance% to land in another backroom,
---                     otherwise teleports to a random surface exit point.
+--   Type = "Exit"  -> rolls MBT.ExitRules (weighted): another backroom or a
+--                     surface exit point.
 MBT.BackRooms = {
     { Type = "Exit",  Coords = vector3(310.52, 5522.78, 14.51),   Range = 1.5 },
     { Type = "Exit",  Coords = vector3(1779.16, -260.81, 20.86),  Range = 1.5 },

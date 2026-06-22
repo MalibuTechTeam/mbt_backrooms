@@ -26,6 +26,32 @@ local function pickSurface()
     return MBT.RandomExitPoint[math.random(1, #MBT.RandomExitPoint)]
 end
 
+-- Weighted exit roll (F2). Uses the per-point override if present, else the
+-- default rule. Returns coords, level (level = false for a surface escape).
+local function rollExit(pointIndex)
+    local rules = (MBT.ExitRules and MBT.ExitRules[pointIndex])
+        or (MBT.ExitRules and MBT.ExitRules.default)
+        or { surface = 30, backroom = 70 }
+
+    local total = 0
+    for _, w in pairs(rules) do total = total + (w or 0) end
+    if total <= 0 then return pickBackroom() end -- misconfigured -> stay trapped
+
+    local r = math.random(1, total)
+    local acc = 0
+    for category, w in pairs(rules) do
+        acc = acc + (w or 0)
+        if r <= acc then
+            if category == 'surface' then
+                return pickSurface(), false
+            end
+            return pickBackroom() -- 'backroom' (and any future trapped category)
+        end
+    end
+
+    return pickBackroom() -- fallback
+end
+
 -- Anti-exploit: for interaction points, verify the player is actually there
 -- (a small grace margin absorbs latency/movement). Falls are rate-limited only.
 local function isNearPoint(src, index)
@@ -96,12 +122,7 @@ RegisterNetEvent('mbt_backrooms:requestExit', function(data)
     local point = MBT.BackRooms[data.point]
     if not point or point.Type ~= 'Exit' or not isNearPoint(src, data.point) then return end
 
-    local coords, level
-    if math.random(1, 100) <= MBT.ExitToBackroomChance then
-        coords, level = pickBackroom()
-    else
-        coords, level = pickSurface(), false
-    end
+    local coords, level = rollExit(data.point)
     dispatchTeleport(src, coords, level)
 end)
 
@@ -118,6 +139,10 @@ RegisterNetEvent('mbt_backrooms:teleportDone', function(token)
     if p.level then
         state:set(STATE_INLEVEL, p.level, true)
         state:set(STATE_ENTRY, GetGameTimer(), true)
+        -- Debug-only: exercise the framework bridge notification routing.
+        if MBT.Debug and Bridge and Bridge.Notify then
+            Bridge.Notify(src, (MBT.Locale and MBT.Locale.notify_entered) or 'Entered the Backrooms')
+        end
     else
         state:set(STATE_INLEVEL, false, true)
         state:set(STATE_ENTRY, false, true)
@@ -142,4 +167,11 @@ AddEventHandler('onResourceStart', function(resource)
         state:set(STATE_INLEVEL, false, true)
         state:set(STATE_ENTRY, false, true)
     end
+end)
+
+-- Startup: report which framework / inventory the bridge resolved to.
+CreateThread(function()
+    Wait(500)
+    Utils.MbtDebugger(('bridge resolved: framework=%s inventory=%s')
+        :format(Bridge and Bridge.Framework or 'none', Inventory and Inventory.System or 'none'))
 end)
