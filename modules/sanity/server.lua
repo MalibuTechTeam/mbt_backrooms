@@ -23,6 +23,14 @@ function Sanity.Hit(src, amount)
     set(src, get(src) - (amount or cfg.SmilerHit or 10))
 end
 
+-- F6: client reports an entity glimpse. Rate-limited so it can't drain sanity.
+RegisterNetEvent('mbt_backrooms:glimpseSeen', function()
+    local src = source
+    if not Utils.RateLimit(src, 'glimpse', 5000) then return end
+    if not Player(src).state['mbt_backrooms:inLevel'] then return end
+    Sanity.Hit(src, (MBT.Entities and MBT.Entities.SanityHit) or cfg.SmilerHit or 15)
+end)
+
 if cfg.Enabled then
     CreateThread(function()
         local perMinToTick = TICK / 60000

@@ -4,28 +4,21 @@ game 'gta5'
 
 name 'mbt_backrooms'
 author 'Malibù Tech Team'
-version '1.0.0'
-description 'mbt_backrooms'
+version '2.0.0'
+description 'Backrooms by Malibu Tech'
 
 this_is_a_map 'yes'
+data_file 'PED_METADATA_FILE' 'data/peds.meta'
 
 dependencies {
   '/onesync'
 }
 
-ui_page 'web/dist/index.html'
-
-files {
-  'interiorproxies.meta',
-  'web/dist/index.html',
-  'web/dist/assets/**',
-  'web/dist/sounds/*.ogg'
-}
-
 shared_scripts {
   'locales/*.lua',
   'modules/locales.lua',
-  'config.lua'
+  'config.lua',
+  'modules/utils/logger.lua'
 }
 
 server_scripts {
@@ -46,5 +39,16 @@ client_scripts {
   'modules/atmosphere/client.lua',
   'modules/interaction/client.lua',
   'modules/sanity/client.lua',
+  'modules/entities/client.lua',
   'core/client.lua'
+}
+
+ui_page 'web/dist/index.html'
+
+files {
+  'interiorproxies.meta',
+  'data/peds.meta',
+  'web/dist/index.html',
+  'web/dist/assets/**',
+  'web/dist/sounds/*.ogg'
 }

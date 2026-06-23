@@ -49,7 +49,12 @@ class AtmosphereAudio {
   }
 
   playEntry(volume: number) {
-    const a = new Audio(SRC.entry)
+    this.playOneShot('entry', volume)
+  }
+
+  /** Fire-and-forget one-shot from sounds/<file>.ogg. */
+  playOneShot(file: string, volume: number) {
+    const a = new Audio(`sounds/${file}.ogg`)
     a.volume = clamp(volume)
     a.play().catch(() => {})
   }

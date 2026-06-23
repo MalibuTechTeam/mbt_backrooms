@@ -5,7 +5,16 @@ MBT = MBT or {}
 -------------------------------------------------------------------------------
 
 MBT.Language = 'en' -- Options: 'en', 'it', 'es' (loads from locales/*.lua — add your own there)
-MBT.Debug    = false -- Enable Utils.MbtDebugger logs
+MBT.Debug    = false -- Enable MBTLog.Debug output (gated)
+
+-- Canonical MBT logger (modules/utils/logger.lua). See that file's header.
+MBT.Log = {
+    Level     = 'debug',   -- debug < info < warn < error
+    Timestamp = true,
+    Caller    = 'auto',    -- file:line on debug/warn/error
+    Tag       = 'BR',      -- per-resource badge
+    Color     = '^6',      -- badge colour (^0-^9)
+}
 
 MBT.General = {
     InteractKey = 'E', -- Key used to pass through Enter/Exit points
@@ -166,4 +175,34 @@ MBT.Sanity = {
     CriticalThreshold = 20, -- camera shake / heavier distortion below this
 
     PersistAcrossSessions = false, -- requires the framework bridge (2.1)
+}
+
+-------------------------------------------------------------------------------
+-- [ SECTION 5: ENTITIES ] --
+-------------------------------------------------------------------------------
+
+-- Scripted entity GLIMPSE (F6): in darkness / low sanity, an entity appears at
+-- a distance, holds while you don't look straight at it, and vanishes when you
+-- stare at it / get close / time out. NOT a chasing AI (that's 2.1).
+MBT.Entities = {
+    Enabled       = true,
+    Models        = { 'Smiler_BR', 'Stealer' }, -- bundled CutterKnight peds (stream/entities)
+    MinSanityGate = 50,    -- glimpses only fire when sanity is below this
+    CooldownSec   = 90,    -- minimum seconds between glimpses
+    Chance        = 50,    -- % roll each eligible check (so it's not clockwork)
+    SpawnDistance = 18.0,  -- how far away the glimpse appears
+    HoldSec       = 6,     -- max seconds it lingers (static-glimpse mode)
+    GazeAngle     = 14.0,  -- looking within this many degrees counts as "looking at it"
+    ApproachDist  = 2.5,   -- reaching this distance ends the encounter (sanity hit + vanish) — keep < spawn min
+    SanityHit     = 15,    -- sanity lost when a glimpse occurs
+
+    -- Stalk mode (Weeping-Angel): it creeps toward you while UNOBSERVED and
+    -- FREEZES while you look at it. Reaching you = sanity hit + vanish.
+    Approach           = true, -- false = static glimpse (vanish when looked at)
+    ApproachSpeed      = 1.2,  -- move speed (1.0 walk, 2.0 run)
+    ApproachTimeoutSec = 15,   -- max stalk duration before it gives up / vanishes
+
+    -- Sound cue (reuses web/public/sounds/<File>.ogg; drop an 'entity.ogg' for a
+    -- dedicated one). Plays on spawn and/or the first time you look at it.
+    Sound = { OnSpawn = false, OnLook = true, File = 'entry', Volume = 0.7 },
 }

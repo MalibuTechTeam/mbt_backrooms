@@ -63,8 +63,18 @@ end
 RegisterCommand('mbt_backrooms_action', handleBackroomAction, false)
 RegisterKeyMapping('mbt_backrooms_action', MBT.Locale.keymapping_label, 'keyboard', MBT.General.InteractKey)
 
--- Proximity scan: show the prompt when the player is within range of a point.
+-- Map a point type to the NUI prompt (found-footage caption: "[e] enter/leave").
+local function promptFor(location)
+    if location.Type == 'Exit' then
+        return 'leave', MBT.Locale.prompt_leave
+    end
+    return 'enter', MBT.Locale.prompt_enter
+end
+
+-- Proximity scan: show/hide the NUI prompt on transition (no per-frame spam).
 CreateThread(function()
+    local shownIndex = nil
+
     while true do
         local sleep = 500
         local playerCoords = GetEntityCoords(PlayerPedId())
@@ -84,8 +94,26 @@ CreateThread(function()
         end
 
         if isNear then
-            sleep = 5
-            Utils.ShowHelpNotification(MBT.Locale.prompt_pass_through)
+            sleep = 300
+            if shownIndex ~= nearestIndex then
+                shownIndex = nearestIndex
+                local ptype, label = promptFor(nearestLocation)
+                Utils.MbtDebugger('prompt:set visible', ptype, nearestIndex)
+                SendNUIMessage({
+                    action = 'prompt:set',
+                    data = {
+                        visible = true,
+                        key = MBT.General.InteractKey,
+                        label = label,
+                        type = ptype,
+                        reduceMotion = (MBT.Atmosphere and MBT.Atmosphere.ReduceMotion) or false,
+                    },
+                })
+            end
+        elseif shownIndex ~= nil then
+            shownIndex = nil
+            Utils.MbtDebugger('prompt:set hidden (left range)')
+            SendNUIMessage({ action = 'prompt:set', data = { visible = false } })
         end
 
         Wait(sleep)

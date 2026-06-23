@@ -1,15 +1,9 @@
 Utils = Utils or {}
 
--- Gated debug print. Enabled via MBT.Debug in config.lua (shared).
-function Utils.MbtDebugger(...)
-    if not MBT.Debug then return end
-    local args = { ... }
-    local out = "[" .. GetCurrentResourceName() .. "] | "
-    for _, v in ipairs(args) do
-        out = out .. tostring(v) .. "\t"
-    end
-    print(out)
-end
+-- Canonical logging via MBTLog (modules/utils/logger.lua, shared). Kept as a
+-- Utils.MbtDebugger alias for back-compat; new code can call MBTLog.Debug/.Warn
+-- /.Error directly.
+Utils.MbtDebugger = MBTLog.Debug
 
 -- Per-player rate limiter. Returns true if the (src, key) action is allowed now.
 local lastAction = {}

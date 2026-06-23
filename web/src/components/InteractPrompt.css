@@ -1,0 +1,62 @@
+/* Found-footage caption. System monospace (CEF-safe, no external font).
+   Chromatic ghost via data-text pseudo-elements. Resolves in like VHS tracking;
+   unmount = abrupt cut (on-theme). reduceMotion (.iprompt--rm) -> plain fade. */
+.iprompt {
+  position: fixed;
+  left: 50%;
+  bottom: 11vh;
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 6;
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, 'Courier New', monospace;
+  animation: iprompt-in 280ms steps(3, end) both;
+}
+
+.iprompt-text {
+  position: relative;
+  display: inline-block;
+  font-size: 15px;
+  letter-spacing: 0.06em;
+  text-transform: lowercase;
+  color: rgba(228, 223, 184, 0.86);
+  text-shadow: 0 0 6px rgba(216, 201, 122, 0.18);
+}
+
+.iprompt-text::before,
+.iprompt-text::after {
+  content: attr(data-text);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+}
+.iprompt-text::before { color: rgba(255, 45, 65, 0.40); transform: translateX(-1.2px); }
+.iprompt-text::after  { color: rgba(45, 255, 220, 0.34); transform: translateX(1.2px); }
+
+.iprompt--leave .iprompt-text { color: rgba(210, 206, 170, 0.60); }
+
+.iprompt--rm { animation: iprompt-fade 140ms ease both; }
+
+/* Low sanity: the prompt appears off-center and snaps back. */
+.iprompt--unstable { animation: iprompt-in-unstable 360ms steps(4, end) both; }
+
+@keyframes iprompt-in-unstable {
+  0%   { opacity: 0; transform: translateX(-50%) translateX(-30px); }
+  20%  { opacity: 0.6; transform: translateX(-50%) translateX(22px); }
+  45%  { opacity: 0.2; transform: translateX(-50%) translateX(-12px); }
+  70%  { opacity: 0.95; transform: translateX(-50%) translateX(6px); }
+  100% { opacity: 1; transform: translateX(-50%); }
+}
+
+@keyframes iprompt-in {
+  0%   { opacity: 0; transform: translateX(-50%); }
+  15%  { opacity: 0.5; }
+  30%  { opacity: 0; }
+  60%  { opacity: 0.9; transform: translateX(-50%) translateX(1px); }
+  100% { opacity: 1; transform: translateX(-50%); }
+}
+
+@keyframes iprompt-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
