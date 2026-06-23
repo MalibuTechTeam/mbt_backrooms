@@ -19,17 +19,16 @@ local function dims(z)
     return z.size.x * 2, z.size.y * 2, z.size.z * 2
 end
 
--- Optional visible marker. Drawn for any zone with `marker = true`, and for ALL
--- zones while MBT.Debug is on (handy for placing/testing). Lore-wise no-clip
--- spots are invisible, so leave markers off in production unless you want them.
+-- DEBUG-ONLY marker (for placing/testing zones). No-clip spots are meant to be
+-- invisible in production — markers never render unless MBT.Debug is on.
 CreateThread(function()
-    if #zones == 0 then return end
+    if not MBT.Debug or #zones == 0 then return end
     while true do
         local sleep = 1000
         local pc = GetEntityCoords(PlayerPedId())
         for i = 1, #zones do
             local z = zones[i]
-            if (MBT.Debug or z.marker) and #(pc - z.coords) < 50.0 then
+            if #(pc - z.coords) < 50.0 then
                 sleep = 0
                 local sx, sy, sz = dims(z)
                 DrawMarker(z.radius and 28 or 1,
