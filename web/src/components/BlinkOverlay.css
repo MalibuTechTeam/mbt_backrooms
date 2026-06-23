@@ -1,0 +1,27 @@
+/* Full-screen black-out for a forced blink. z above the atmosphere overlays so
+   it fully hides the frame. Pure opacity animation — cheap in CEF. */
+.blink {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  pointer-events: none;
+  z-index: 7;
+  animation: blink-eyelid var(--blink-ms, 220ms) ease-in-out forwards;
+}
+
+/* Eyelids: fast close to full black, hold, then open. */
+@keyframes blink-eyelid {
+  0%   { opacity: 0; }
+  35%  { opacity: 1; }
+  70%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* Reduced motion: a flat hard black frame, no easing. */
+.blink--rm {
+  animation: blink-hard var(--blink-ms, 220ms) steps(1) forwards;
+}
+@keyframes blink-hard {
+  0%, 88% { opacity: 1; }
+  100%    { opacity: 0; }
+}

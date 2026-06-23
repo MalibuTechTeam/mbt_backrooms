@@ -83,13 +83,13 @@ MBT.BackRooms = {
 --   size   : vector3 half-extents for a BOX, OR set `radius` for a SPHERE
 --   chance : % to clip once dwell is satisfied (100 = always)
 --   dwell  : seconds you must stay inside before clipping (0 = instant)
---   marker : (optional) true -> draw a visible marker for this zone for everyone.
---            All zones also show a marker automatically while MBT.Debug is on.
+-- Markers for these zones are DEBUG-ONLY (drawn only while MBT.Debug is on, for
+-- placement) — in production these spots stay invisible.
 -- Tip: use the /brhere debug command (needs MBT.Debug) to grab coords in-game.
 MBT.NoClipZones = {
     -- { coords = vector3(195.0, -934.0, 30.7), size = vector3(1.2, 1.2, 2.0), chance = 100, dwell = 0 },
     -- { coords = vector3(-1108.0, -2008.0, 13.2), radius = 1.5, chance = 30, dwell = 2 },
-    -- { coords = vector3(203.91, -931.36, 30.69), size = vector3(1.5, 1.5, 2.0), chance = 100, dwell = 0, marker = true },
+    -- { coords = vector3(203.91, -931.36, 30.69), size = vector3(1.5, 1.5, 2.0), chance = 100, dwell = 0 }, -- local test zone
 }
 
 -------------------------------------------------------------------------------
@@ -189,7 +189,7 @@ MBT.Entities = {
     Models        = { 'Smiler_BR', 'Stealer' }, -- bundled CutterKnight peds (stream/entities)
     MinSanityGate = 50,    -- glimpses only fire when sanity is below this
     CooldownSec   = 90,    -- minimum seconds between glimpses
-    Chance        = 50,    -- % roll each eligible check (so it's not clockwork)
+    Chance        = 50,    -- % roll each eligible check
     SpawnDistance = 18.0,  -- how far away the glimpse appears
     HoldSec       = 6,     -- max seconds it lingers (static-glimpse mode)
     GazeAngle     = 14.0,  -- looking within this many degrees counts as "looking at it"
@@ -201,6 +201,19 @@ MBT.Entities = {
     Approach           = true, -- false = static glimpse (vanish when looked at)
     ApproachSpeed      = 1.2,  -- move speed (1.0 walk, 2.0 run)
     ApproachTimeoutSec = 15,   -- max stalk duration before it gives up / vanishes
+
+    -- Don't-Blink (stalk mode only): staring FREEZES the entity but drains your
+    -- focus; at zero you blink (forced black-out) and it LUNGES closer. Breaks the
+    -- "stare forever and it can't move" exploit. Looking away regenerates focus —
+    -- but then it creeps toward you. Either way it closes the gap: it's a curve.
+    DontBlink = {
+        Enabled         = true,
+        DrainPerSec     = 0.5,  -- focus drained per second while staring (1.0 = full meter)
+        RegenPerSec     = 0.4,  -- focus recovered per second while NOT staring
+        BlinkMs         = 220,  -- blink (black-screen) duration
+        BlinkAdvance    = 3.0,  -- metres it lunges closer during the blink
+        FocusAfterBlink = 0.5,  -- focus restored right after a blink (anti instant re-blink)
+    },
 
     -- Sound cue (reuses web/public/sounds/<File>.ogg; drop an 'entity.ogg' for a
     -- dedicated one). Plays on spawn and/or the first time you look at it.

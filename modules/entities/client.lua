@@ -14,6 +14,7 @@ local function cleanup()
         DeleteEntity(activePed)
     end
     activePed = nil
+    SendNUIMessage({ action = 'entity:strain', data = { level = 0 } }) -- clear any tunnel-vision
 end
 
 -- Soft vanish: quick alpha fade then delete, so it never "pops" out of view.
@@ -150,11 +151,42 @@ local function spawnGlimpse()
     local cosGaze = math.cos(math.rad(cfg.GazeAngle or 14.0))
     local moving, lastTask, lookedOnce = false, 0, false
 
+    -- Don't-Blink state: focus drains while staring, regens while looking away.
+    local db = cfg.DontBlink
+    local focus, lastTick = 1.0, spawnAt
+    local lastStrain, lastStrainAt = -1.0, 0
+    local function sendStrain(level)
+        if level < 0 then level = 0 elseif level > 1 then level = 1 end
+        local t = GetGameTimer()
+        if math.abs(level - lastStrain) >= 0.05 or (t - lastStrainAt) > 200 then
+            SendNUIMessage({ action = 'entity:strain', data = { level = level } })
+            lastStrain, lastStrainAt = level, t
+        end
+    end
+    -- Forced blink: lunge closer along the line to the player (hidden by the
+    -- NUI black-out) — classic "look away and it's nearer".
+    local function blinkLunge()
+        local ec, pc = GetEntityCoords(activePed), GetEntityCoords(PlayerPedId())
+        local to = pc - ec
+        local d = #(to)
+        if d > 0.001 then
+            local step = math.min(db.BlinkAdvance or 3.0, d - 0.5)
+            if step > 0.0 then
+                local np = ec + (to / d) * step
+                SetEntityCoordsNoOffset(activePed, np.x, np.y, np.z, false, false, false)
+                SetEntityHeading(activePed, GetHeadingFromVector_2d(pc.x - np.x, pc.y - np.y))
+            end
+        end
+        SendNUIMessage({ action = 'entity:blink', data = { durationMs = db.BlinkMs or 220 } })
+    end
+
     while activePed and DoesEntityExist(activePed) do
         local entCoord = GetEntityCoords(activePed)
         local cam = GetGameplayCamCoord()
         local ply = GetEntityCoords(PlayerPedId())
         local now = GetGameTimer()
+        local dt = (now - lastTick) / 1000.0
+        lastTick = now
 
         -- Reached the player: a final jolt of dread, then gone.
         if #(ply - entCoord) < (cfg.ApproachDist or 6.0) then
@@ -187,6 +219,15 @@ local function spawnGlimpse()
                     -- Watched: freeze where it stands (never moves or pops while seen).
                     if moving then ClearPedTasksImmediately(activePed); moving = false end
                     FreezeEntityPosition(activePed, true)
+                    -- Don't-Blink: staring drains focus; at zero you blink and it lunges.
+                    if db and db.Enabled then
+                        focus = focus - (db.DrainPerSec or 0.5) * dt
+                        if focus <= 0.0 then
+                            blinkLunge()
+                            focus = db.FocusAfterBlink or 0.5
+                        end
+                        sendStrain(1.0 - focus)
+                    end
                 else
                     -- Unobserved: creep toward the player (re-tasked to track them).
                     FreezeEntityPosition(activePed, false)
@@ -194,6 +235,11 @@ local function spawnGlimpse()
                         TaskGoStraightToCoord(activePed, ply.x, ply.y, ply.z, cfg.ApproachSpeed or 1.2, -1, 0.0, 0.0)
                         moving = true
                         lastTask = now
+                    end
+                    -- Looking away lets focus recover (but it's closing on you).
+                    if db and db.Enabled and focus < 1.0 then
+                        focus = math.min(1.0, focus + (db.RegenPerSec or 0.4) * dt)
+                        sendStrain(1.0 - focus)
                     end
                 end
             elseif looked then

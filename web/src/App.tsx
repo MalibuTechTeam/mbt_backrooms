@@ -4,6 +4,8 @@ import { debugData } from './utils/debugData'
 import VhsOverlay from './components/VhsOverlay'
 import EntryGlitch from './components/EntryGlitch'
 import SanityVignette from './components/SanityVignette'
+import StrainVignette from './components/StrainVignette'
+import BlinkOverlay from './components/BlinkOverlay'
 import InteractPrompt from './components/InteractPrompt'
 import { atmosphereAudio } from './audio/atmosphereAudio'
 
@@ -42,6 +44,9 @@ export default function App() {
   const [glitchKey, setGlitchKey] = useState(0)
   const [glitchIntensity, setGlitchIntensity] = useState(1)
   const [dread, setDread] = useState(0)
+  const [strain, setStrain] = useState(0)
+  const [blinkKey, setBlinkKey] = useState(0)
+  const [blinkMs, setBlinkMs] = useState(220)
   const [prompt, setPrompt] = useState<PromptData | null>(null)
   const [promptKey, setPromptKey] = useState(0)
 
@@ -68,9 +73,17 @@ export default function App() {
     atmosphereAudio.playOneShot(d?.file || 'entry', d?.volume ?? 0.7),
   )
 
+  // Don't-Blink: focus-drain tunnel vision + the forced blink black-out.
+  useNuiEvent<{ level?: number }>('entity:strain', (d) => setStrain(d?.level ?? 0))
+  useNuiEvent<{ durationMs?: number }>('entity:blink', (d) => {
+    setBlinkMs(d?.durationMs ?? 220)
+    setBlinkKey((k) => k + 1) // remount -> replay the blink
+  })
+
   useNuiEvent('atmosphere:stopAll', () => {
     setAtmo({ active: false })
     setDread(0)
+    setStrain(0)
     atmosphereAudio.stopLoops()
   })
 
@@ -88,8 +101,10 @@ export default function App() {
     <>
       {atmo.active && atmo.vhs && <VhsOverlay intensity={atmo.intensity ?? 1} grain={!!atmo.grain} reduceMotion={!!atmo.reduceMotion} />}
       {dread > 0 && <SanityVignette dread={dread} />}
+      {strain > 0 && <StrainVignette level={strain} />}
       {prompt && <InteractPrompt key={promptKey} keyGlyph={prompt.key} label={prompt.label} type={prompt.type} reduceMotion={prompt.reduceMotion} dread={dread} />}
       {glitchKey > 0 && <EntryGlitch key={glitchKey} intensity={glitchIntensity} />}
+      {blinkKey > 0 && <BlinkOverlay key={blinkKey} durationMs={blinkMs} reduceMotion={atmo.reduceMotion} />}
     </>
   )
 }

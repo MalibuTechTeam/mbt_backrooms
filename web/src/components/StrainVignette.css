@@ -1,0 +1,16 @@
+/* Eye-strain tunnel vision: a black ring closing inward as --strain -> 1.
+   Sits below the blink black-out, above the VHS layer. Transitions are short so
+   it tracks the focus drain smoothly without per-frame messages. */
+.strain {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4;
+  opacity: var(--strain, 0);
+  background: radial-gradient(
+    ellipse at center,
+    rgba(0, 0, 0, 0) calc(46% - var(--strain, 0) * 34%),
+    rgba(0, 0, 0, 0.92) calc(80% - var(--strain, 0) * 30%)
+  );
+  transition: opacity 120ms linear, background 120ms linear;
+}
