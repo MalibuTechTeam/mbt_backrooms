@@ -30,7 +30,8 @@ server_scripts {
   'modules/bridge/custom/server.lua',
   'modules/inventory/server.lua',
   'core/server.lua',
-  'modules/sanity/server.lua'
+  'modules/sanity/server.lua',
+  'modules/admin/server.lua'
 }
 
 client_scripts {

@@ -243,3 +243,39 @@ CreateThread(function()
     Utils.MbtDebugger(('bridge resolved: framework=%s inventory=%s')
         :format(Bridge and Bridge.Framework or 'none', Inventory and Inventory.System or 'none'))
 end)
+
+-------------------------------------------------------------------------------
+-- Core API — used by the admin module (F9). Reuses the authoritative paths.
+-------------------------------------------------------------------------------
+Core = Core or {}
+
+function Core.SendToLevel(src, n)
+    local coords = MBT.Coords[n]
+    if not coords then return false end
+    dispatchTeleport(src, coords, n)
+    return true
+end
+
+function Core.SendToSurface(src)
+    dispatchTeleport(src, pickSurface(), false)
+end
+
+-- Clear a player's backrooms state (unstick + pull out of any level).
+function Core.ClearState(src)
+    pendingTeleport[src] = nil
+    zoneState[src] = nil
+    local state = Player(src).state
+    state:set(STATE_LOCKED, false, true)
+    state:set(STATE_INLEVEL, false, true)
+    state:set(STATE_ENTRY, false, true)
+end
+
+function Core.GetState(src)
+    local state = Player(src).state
+    return {
+        inLevel = state[STATE_INLEVEL] or false,
+        locked = state[STATE_LOCKED] or false,
+        sanity = state['mbt_backrooms:sanity'],
+        entry = state[STATE_ENTRY] or false,
+    }
+end
