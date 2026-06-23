@@ -1,0 +1,35 @@
+.exitwarp {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3; /* above the VHS bed, below strain/blink */
+}
+
+/* Tell: faint "something's near" — a soft cyan edge vignette that swells with
+   proximity. Liminal, not alarming. */
+.exitwarp-tell {
+  position: absolute;
+  inset: 0;
+  opacity: calc(var(--tell, 0) * 0.55);
+  background: radial-gradient(
+    ellipse at center,
+    rgba(0, 0, 0, 0) 55%,
+    rgba(120, 200, 190, 0.18) 100%
+  );
+  transition: opacity 140ms linear;
+}
+
+/* Pull-in: a dark ring tightens and the frame creeps inward as --pull -> 1,
+   building to the teleport (which the doTeleport glitch then takes over). */
+.exitwarp-pull {
+  position: absolute;
+  inset: 0;
+  opacity: var(--pull, 0);
+  background: radial-gradient(
+    circle at center,
+    rgba(0, 0, 0, 0) calc(40% - var(--pull, 0) * 30%),
+    rgba(8, 10, 12, 0.85) calc(95% - var(--pull, 0) * 35%)
+  );
+  transform: scale(calc(1 + var(--pull, 0) * 0.06));
+  transition: opacity 120ms linear, background 120ms linear, transform 120ms linear;
+}

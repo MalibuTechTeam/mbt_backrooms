@@ -136,7 +136,7 @@ local function spawnGlimpse()
 
     local snd = cfg.Sound
     if snd and snd.OnSpawn then
-        SendNUIMessage({ action = 'entity:sound', data = { file = snd.File, volume = snd.Volume } })
+        SendNUIMessage({ action = 'entity:sound', data = { file = snd.SpawnFile, volume = snd.Volume } })
     end
 
     -- Hold loop. Grace guarantees it's on screen briefly first. Then:
@@ -210,7 +210,7 @@ local function spawnGlimpse()
                 lookedOnce = true
                 local snd = cfg.Sound
                 if snd and snd.OnLook then
-                    SendNUIMessage({ action = 'entity:sound', data = { file = snd.File, volume = snd.Volume } })
+                    SendNUIMessage({ action = 'entity:sound', data = { file = snd.LookFile, volume = snd.Volume } })
                 end
             end
 

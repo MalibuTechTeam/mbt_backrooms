@@ -7,6 +7,7 @@ math.randomseed(GetGameTimer())
 local STATE_INLEVEL = 'mbt_backrooms:inLevel'   -- false (outside) | level index (inside)
 local STATE_ENTRY   = 'mbt_backrooms:entryTime' -- GetGameTimer() at entry | false
 local STATE_LOCKED  = 'mbt_backrooms:exitLocked'-- true while a transition is mid-flight
+local STATE_EXITS   = 'mbt_backrooms:activeExits'-- per-visit active curated exits (server-picked)
 
 local REQUEST_COOLDOWN = 500   -- ms (~2 requests/second/player)
 local UNLOCK_SAFETY    = 8000  -- ms — clear a stuck lock (must exceed worst-case client teleport path)
@@ -17,8 +18,12 @@ local PENDING_EXPIRY   = 30000 -- ms — abandon a pending teleport that never c
 local pendingTeleport = {}
 local tokenCounter = 0
 
-local function pickBackroom()
-    local i = math.random(1, #MBT.Coords)
+-- `exclude` (optional): avoid this level index so a curated 'backroom' exit never
+-- dumps you back where you started (anti-bounce).
+local function pickBackroom(exclude)
+    if #MBT.Coords <= 1 then return MBT.Coords[1], 1 end
+    local i
+    repeat i = math.random(1, #MBT.Coords) until i ~= exclude
     return MBT.Coords[i], i
 end
 
@@ -87,6 +92,31 @@ local function dispatchTeleport(src, coords, level)
             pendingTeleport[src] = nil
         end
     end)
+end
+
+-- Curated exits (F2 / Wave 1): pick ActivePerVisit from the level's pool and
+-- publish them via state bag (server picks; the client only senses them). Stored
+-- as { i, x, y, z, r } — `dest` stays server-side so it can't be spoofed.
+local function activateExits(src, level)
+    local ce = MBT.CuratedExits
+    local pool = ce and ce.Enabled and ce.Pool and ce.Pool[level]
+    if not pool or #pool == 0 then
+        Player(src).state:set(STATE_EXITS, {}, true)
+        return
+    end
+    local idx = {}
+    for i = 1, #pool do idx[i] = i end
+    for i = #idx, 2, -1 do -- Fisher–Yates
+        local j = math.random(1, i)
+        idx[i], idx[j] = idx[j], idx[i]
+    end
+    local n = math.min(ce.ActivePerVisit or 2, #pool)
+    local active = {}
+    for k = 1, n do
+        local e = pool[idx[k]]
+        active[#active + 1] = { i = idx[k], x = e.coords.x, y = e.coords.y, z = e.coords.z, r = e.radius or 1.6 }
+    end
+    Player(src).state:set(STATE_EXITS, active, true)
 end
 
 -- No-clip zone state per player: { zone, passed } (passed=false means the
@@ -193,6 +223,44 @@ RegisterNetEvent('mbt_backrooms:requestExit', function(data)
     dispatchTeleport(src, coords, level)
 end)
 
+-- Curated exit used (soft pull-in completed). The dest is the server's — we only
+-- accept it if this pool entry is one of the player's CURRENTLY active exits and
+-- they're actually standing in it.
+RegisterNetEvent('mbt_backrooms:requestCuratedExit', function(poolIndex)
+    local src = source
+    if not Utils.RateLimit(src, 'teleport', REQUEST_COOLDOWN) then return end
+
+    local state = Player(src).state
+    local level = state[STATE_INLEVEL]
+    if state[STATE_LOCKED] or not level then return end
+
+    local ce = MBT.CuratedExits
+    local pool = ce and ce.Pool and ce.Pool[level]
+    local exit = pool and pool[poolIndex]
+    if not exit then return end
+
+    local active = state[STATE_EXITS]
+    local isActive = false
+    if type(active) == 'table' then
+        for _, a in ipairs(active) do if a.i == poolIndex then isActive = true break end end
+    end
+    if not isActive then Utils.MbtDebugger('curatedExit rejected: not active', src, poolIndex); return end
+
+    local ped = GetPlayerPed(src)
+    if not ped or ped == 0 or #(GetEntityCoords(ped) - exit.coords) > ((exit.radius or 1.6) + 2.0) then
+        Utils.MbtDebugger('curatedExit rejected: not near', src, poolIndex)
+        return
+    end
+
+    local coords, lvl
+    if exit.dest == 'surface' then
+        coords, lvl = pickSurface(), false
+    else
+        coords, lvl = pickBackroom(level) -- never bounce back into the same level
+    end
+    dispatchTeleport(src, coords, lvl)
+end)
+
 -- Client confirms the move finished; finalize authoritative state. The token
 -- must match the pending dispatch — ignore spoofed / stale confirmations.
 RegisterNetEvent('mbt_backrooms:teleportDone', function(token)
@@ -206,6 +274,7 @@ RegisterNetEvent('mbt_backrooms:teleportDone', function(token)
     if p.level then
         state:set(STATE_INLEVEL, p.level, true)
         state:set(STATE_ENTRY, GetGameTimer(), true)
+        activateExits(src, p.level) -- fresh curated exits for this visit
         -- Debug-only: exercise the framework bridge notification routing.
         if MBT.Debug and Bridge and Bridge.Notify then
             Bridge.Notify(src, (MBT.Locale and MBT.Locale.notify_entered) or 'Entered the Backrooms')
@@ -213,6 +282,7 @@ RegisterNetEvent('mbt_backrooms:teleportDone', function(token)
     else
         state:set(STATE_INLEVEL, false, true)
         state:set(STATE_ENTRY, false, true)
+        state:set(STATE_EXITS, {}, true) -- no curated exits on the surface
     end
 end)
 
@@ -234,6 +304,7 @@ AddEventHandler('onResourceStart', function(resource)
         state:set(STATE_LOCKED, false, true)
         state:set(STATE_INLEVEL, false, true)
         state:set(STATE_ENTRY, false, true)
+        state:set(STATE_EXITS, {}, true)
     end
 end)
 
@@ -268,6 +339,7 @@ function Core.ClearState(src)
     state:set(STATE_LOCKED, false, true)
     state:set(STATE_INLEVEL, false, true)
     state:set(STATE_ENTRY, false, true)
+    state:set(STATE_EXITS, {}, true)
 end
 
 function Core.GetState(src)

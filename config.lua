@@ -215,7 +215,53 @@ MBT.Entities = {
         FocusAfterBlink = 0.5,  -- focus restored right after a blink (anti instant re-blink)
     },
 
-    -- Sound cue (reuses web/public/sounds/<File>.ogg; drop an 'entity.ogg' for a
-    -- dedicated one). Plays on spawn and/or the first time you look at it.
-    Sound = { OnSpawn = false, OnLook = true, File = 'entry', Volume = 0.7 },
+    -- Sound cues (web/public/sounds/<file>.ogg). tape_warble = subtle "presence
+    -- arrives" on spawn; sting = the sharper "it sees you" beat on first look.
+    Sound = { OnSpawn = true, OnLook = true, SpawnFile = 'tape_warble', LookFile = 'sting', Volume = 0.7 },
+}
+
+-------------------------------------------------------------------------------
+-- [ SECTION 6: CURATED EXITS ] --
+-------------------------------------------------------------------------------
+
+-- Curated, AMBIENT exits (distinct from the deliberate [E] doors in MBT.BackRooms).
+-- Each time you enter a level the server activates a random subset of a per-level
+-- pool, so the way out changes every visit. There is NO marker and NO prompt — you
+-- SENSE an active exit (tells: a screen shimmer that intensifies as you near it),
+-- and lingering inside it pulls you through (soft pull-in, cancellable by leaving).
+--   coords/radius : the (invisible) exit volume
+--   dest          : 'surface' (escape) | 'backroom' (dumped into another level)
+-- NOTE: coords below are FAKE placeholders near each level spawn until Iakko's map
+-- lands — grab real ones in-game with /brhere. Pool index matches MBT.Coords level.
+MBT.CuratedExits = {
+    Enabled        = true,
+    ActivePerVisit = 2,    -- how many pool entries go "live" each entry
+    TellRange      = 9.0,  -- start sensing an active exit within this distance (m)
+    Pool = {
+        [1] = {
+            { coords = vector3(1031.0, 806.0, 25.88), radius = 1.6, dest = 'surface'  },
+            { coords = vector3(1019.0, 796.0, 25.88), radius = 1.6, dest = 'backroom' },
+            { coords = vector3(1036.0, 799.0, 25.88), radius = 1.6, dest = 'surface'  },
+        },
+        [2] = {
+            { coords = vector3(1785.0, -269.0, 20.66), radius = 1.6, dest = 'surface'  },
+            { coords = vector3(1774.0, -279.0, 20.66), radius = 1.6, dest = 'backroom' },
+        },
+        [3] = {
+            { coords = vector3(361.0, 5535.0, 14.37), radius = 1.6, dest = 'surface'  },
+            { coords = vector3(351.0, 5525.0, 14.37), radius = 1.6, dest = 'backroom' },
+        },
+        [4] = {
+            { coords = vector3(-2280.0, 1437.0, 81.70), radius = 1.6, dest = 'surface'  },
+            { coords = vector3(-2290.0, 1427.0, 81.70), radius = 1.6, dest = 'backroom' },
+        },
+    },
+}
+
+-- Soft pull-in: a curated exit doesn't teleport instantly. Linger inside it and a
+-- warp builds over DurationMs (screen smear) then it pulls you through. Step out
+-- to cancel — exits never "steal" a run by a single accidental touch.
+MBT.SoftPullIn = {
+    Enabled    = true,
+    DurationMs = 2200,
 }

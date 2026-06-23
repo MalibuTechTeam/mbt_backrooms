@@ -6,6 +6,7 @@ import EntryGlitch from './components/EntryGlitch'
 import SanityVignette from './components/SanityVignette'
 import StrainVignette from './components/StrainVignette'
 import BlinkOverlay from './components/BlinkOverlay'
+import ExitWarp from './components/ExitWarp'
 import InteractPrompt from './components/InteractPrompt'
 import { atmosphereAudio } from './audio/atmosphereAudio'
 
@@ -45,6 +46,8 @@ export default function App() {
   const [glitchIntensity, setGlitchIntensity] = useState(1)
   const [dread, setDread] = useState(0)
   const [strain, setStrain] = useState(0)
+  const [exitTell, setExitTell] = useState(0)
+  const [exitPull, setExitPull] = useState(0)
   const [blinkKey, setBlinkKey] = useState(0)
   const [blinkMs, setBlinkMs] = useState(220)
   const [prompt, setPrompt] = useState<PromptData | null>(null)
@@ -80,10 +83,18 @@ export default function App() {
     setBlinkKey((k) => k + 1) // remount -> replay the blink
   })
 
+  // Curated exits: ambient proximity tell + soft pull-in warp.
+  useNuiEvent<{ tell?: number; pull?: number }>('exit:warp', (d) => {
+    setExitTell(d?.tell ?? 0)
+    setExitPull(d?.pull ?? 0)
+  })
+
   useNuiEvent('atmosphere:stopAll', () => {
     setAtmo({ active: false })
     setDread(0)
     setStrain(0)
+    setExitTell(0)
+    setExitPull(0)
     atmosphereAudio.stopLoops()
   })
 
@@ -102,6 +113,7 @@ export default function App() {
       {atmo.active && atmo.vhs && <VhsOverlay intensity={atmo.intensity ?? 1} grain={!!atmo.grain} reduceMotion={!!atmo.reduceMotion} />}
       {dread > 0 && <SanityVignette dread={dread} />}
       {strain > 0 && <StrainVignette level={strain} />}
+      {(exitTell > 0 || exitPull > 0) && <ExitWarp tell={exitTell} pull={exitPull} />}
       {prompt && <InteractPrompt key={promptKey} keyGlyph={prompt.key} label={prompt.label} type={prompt.type} reduceMotion={prompt.reduceMotion} dread={dread} />}
       {glitchKey > 0 && <EntryGlitch key={glitchKey} intensity={glitchIntensity} />}
       {blinkKey > 0 && <BlinkOverlay key={blinkKey} durationMs={blinkMs} reduceMotion={atmo.reduceMotion} />}
