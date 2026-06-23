@@ -52,10 +52,11 @@ class AtmosphereAudio {
     this.playOneShot('entry', volume)
   }
 
-  /** Fire-and-forget one-shot from sounds/<file>.ogg. */
+  /** Fire-and-forget one-shot from sounds/<file>.ogg. Releases the element on end. */
   playOneShot(file: string, volume: number) {
     const a = new Audio(`sounds/${file}.ogg`)
     a.volume = clamp(volume)
+    a.addEventListener('ended', () => { a.src = '' })
     a.play().catch(() => {})
   }
 

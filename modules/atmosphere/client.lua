@@ -82,9 +82,16 @@ function Atmosphere.Enter(level)
             cameraGen = cameraGen + 1
             local gen = cameraGen
             CreateThread(function()
+                local nextAssert = 0
                 while gen == cameraGen and active do
-                    DisableControlAction(0, 0, true) -- INPUT_NEXT_CAMERA (block view switch)
-                    if GetFollowPedCamViewMode() ~= 4 then SetFollowPedCamViewMode(4) end
+                    DisableControlAction(0, 0, true) -- INPUT_NEXT_CAMERA (must be per-frame)
+                    -- The view mode only changes via the (now-blocked) key, so
+                    -- re-assert it on a throttle instead of every frame.
+                    local now = GetGameTimer()
+                    if now >= nextAssert then
+                        if GetFollowPedCamViewMode() ~= 4 then SetFollowPedCamViewMode(4) end
+                        nextAssert = now + 500
+                    end
                     Wait(0)
                 end
             end)
@@ -100,6 +107,7 @@ function Atmosphere.Enter(level)
             intensity = A.Intensity.NUI or 1.0,
             vhs = vhs,
             grain = vhs and A.Effects.Vhs.grain or false,
+            reduceMotion = A.ReduceMotion or false,
             hum = enabled(A.Effects.Hum) and audioVol(A.Effects.Hum) or false,
             drone = enabled(A.Effects.Drone) and audioVol(A.Effects.Drone) or false,
         },

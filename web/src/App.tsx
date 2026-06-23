@@ -13,6 +13,7 @@ interface AtmoState {
   intensity?: number // NUI visual intensity 0..1
   vhs?: boolean
   grain?: boolean
+  reduceMotion?: boolean
   hum?: number | false // final volume, or false to disable
   drone?: number | false
 }
@@ -85,7 +86,7 @@ export default function App() {
 
   return (
     <>
-      {atmo.active && atmo.vhs && <VhsOverlay intensity={atmo.intensity ?? 1} grain={!!atmo.grain} />}
+      {atmo.active && atmo.vhs && <VhsOverlay intensity={atmo.intensity ?? 1} grain={!!atmo.grain} reduceMotion={!!atmo.reduceMotion} />}
       {dread > 0 && <SanityVignette dread={dread} />}
       {prompt && <InteractPrompt key={promptKey} keyGlyph={prompt.key} label={prompt.label} type={prompt.type} reduceMotion={prompt.reduceMotion} dread={dread} />}
       {glitchKey > 0 && <EntryGlitch key={glitchKey} intensity={glitchIntensity} />}

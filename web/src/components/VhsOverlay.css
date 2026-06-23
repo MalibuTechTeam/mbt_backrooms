@@ -8,7 +8,9 @@
   z-index: 1;
 }
 
-/* Horizontal scanlines */
+/* Horizontal scanlines. Plain rgba (no mix-blend-mode) — blend modes force
+   off-screen compositing of this full-screen layer every frame in CEF; a darker
+   straight alpha looks ~the same and is materially cheaper. */
 .vhs-scanlines {
   position: absolute;
   inset: 0;
@@ -16,11 +18,10 @@
     to bottom,
     rgba(0, 0, 0, 0) 0px,
     rgba(0, 0, 0, 0) 2px,
-    rgba(0, 0, 0, 0.18) 3px,
+    rgba(0, 0, 0, 0.30) 3px,
     rgba(0, 0, 0, 0) 4px
   );
   opacity: calc(0.6 * var(--vhs-intensity, 1));
-  mix-blend-mode: multiply;
 }
 
 /* Liminal yellow-tinted vignette */
@@ -55,6 +56,9 @@
   100% { transform: translate(0, 0); }
 }
 
+/* Stop the grain jitter for OS reduced-motion AND the config toggle
+   (MBT.Atmosphere.ReduceMotion, passed as the .vhs--rm class). */
 @media (prefers-reduced-motion: reduce) {
   .vhs-grain { animation: none; }
 }
+.vhs--rm .vhs-grain { animation: none; }
