@@ -32,6 +32,7 @@ server_scripts {
   'core/server.lua',
   'modules/sanity/server.lua',
   'modules/artifacts/server.lua',
+  'modules/almondwater/server.lua',
   'modules/admin/server.lua'
 }
 
@@ -42,6 +43,7 @@ client_scripts {
   'modules/interaction/client.lua',
   'modules/exits/client.lua',
   'modules/artifacts/client.lua',
+  'modules/almondwater/client.lua',
   'modules/sanity/client.lua',
   'modules/entities/client.lua',
   'core/client.lua'

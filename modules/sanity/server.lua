@@ -23,6 +23,17 @@ function Sanity.Hit(src, amount)
     set(src, get(src) - (amount or cfg.SmilerHit or 10))
 end
 
+-- Discrete sanity gain (Almond Water). Returns false if already (near) full so the
+-- caller can avoid consuming the item for nothing.
+function Sanity.Restore(src, amount)
+    if not cfg.Enabled then return false end
+    if get(src) >= 98 then return false end
+    set(src, get(src) + (amount or 0))
+    return true
+end
+
+function Sanity.Get(src) return get(src) end
+
 -- F6: client reports an entity glimpse. Rate-limited so it can't drain sanity.
 RegisterNetEvent('mbt_backrooms:glimpseSeen', function()
     local src = source

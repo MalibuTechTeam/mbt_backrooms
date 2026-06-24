@@ -7,14 +7,8 @@ MBT = MBT or {}
 MBT.Language = 'en' -- Options: 'en', 'it', 'es' (loads from locales/*.lua — add your own there)
 MBT.Debug    = false -- Enable MBTLog.Debug output (gated)
 
--- Canonical MBT logger (modules/utils/logger.lua). See that file's header.
-MBT.Log = {
-    Level     = 'debug',   -- debug < info < warn < error
-    Timestamp = true,
-    Caller    = 'auto',    -- file:line on debug/warn/error
-    Tag       = 'BR',      -- per-resource badge
-    Color     = '^6',      -- badge colour (^0-^9)
-}
+-- (Logger config lives in modules/utils/logger.lua's PER-RESOURCE IDENTITY block,
+-- not here — the [BR] badge is the resource's identity, not a server-owner setting.)
 
 MBT.General = {
     InteractKey = 'E', -- Key used to pass through Enter/Exit points
@@ -238,22 +232,21 @@ MBT.CuratedExits = {
     ActivePerVisit = 2,    -- how many pool entries go "live" each entry
     TellRange      = 9.0,  -- start sensing an active exit within this distance (m)
     Pool = {
-        [1] = {
-            { coords = vector3(1031.0, 806.0, 25.88), radius = 1.6, dest = 'surface'  },
-            { coords = vector3(1019.0, 796.0, 25.88), radius = 1.6, dest = 'backroom' },
-            { coords = vector3(1036.0, 799.0, 25.88), radius = 1.6, dest = 'surface'  },
+        [1] = { -- lv01 ymap (small ~16m room, rot +60°); exits N, pickups S (~12m apart)
+            { coords = vector3(1025.84, 807.09, 25.9), radius = 1.6, dest = 'surface'  },
+            { coords = vector3(1015.84, 807.09, 25.9), radius = 1.6, dest = 'backroom' },
         },
-        [2] = {
-            { coords = vector3(1785.0, -269.0, 20.66), radius = 1.6, dest = 'surface'  },
-            { coords = vector3(1774.0, -279.0, 20.66), radius = 1.6, dest = 'backroom' },
+        [2] = { -- lv02 ymap (med room, rot -30°); spread around the real spawn
+            { coords = vector3(1792.18, -266.04, 20.7), radius = 1.6, dest = 'surface'  },
+            { coords = vector3(1768.18, -282.04, 20.7), radius = 1.6, dest = 'backroom' },
         },
-        [3] = {
-            { coords = vector3(361.0, 5535.0, 14.37), radius = 1.6, dest = 'surface'  },
-            { coords = vector3(351.0, 5525.0, 14.37), radius = 1.6, dest = 'backroom' },
+        [3] = { -- lv03 ymap (big room, MLO @ 336.5,5533 rot -30°); spread around the real spawn
+            { coords = vector3(370.4, 5540.5, 14.4), radius = 1.6, dest = 'surface'  },
+            { coords = vector3(342.4, 5520.5, 14.4), radius = 1.6, dest = 'backroom' },
         },
-        [4] = {
-            { coords = vector3(-2280.0, 1437.0, 81.70), radius = 1.6, dest = 'surface'  },
-            { coords = vector3(-2290.0, 1427.0, 81.70), radius = 1.6, dest = 'backroom' },
+        [4] = { -- REAL coords from lv04 ymap (MLO @ -2287.88,1430.96 no-rot); exits at opposite edges
+            { coords = vector3(-2298.88, 1441.96, 81.7), radius = 1.6, dest = 'surface'  },
+            { coords = vector3(-2276.88, 1419.96, 81.7), radius = 1.6, dest = 'backroom' },
         },
     },
 }
@@ -295,22 +288,59 @@ MBT.Artifacts = {
     PickupRange   = 1.8,
     PropModel     = 'prop_notepad_01',   -- in-world prop (swap if it doesn't spawn)
     Pool = {
-        [1] = {
-            { coords = vector3(1028.0, 803.0, 25.0), type = 'tape', text = "TAPE 04 — \"the lights hum in B-flat. counted 1,400 before i stopped.\"" },
-            { coords = vector3(1021.0, 797.0, 25.0), type = 'log',  text = "NOTE — \"don't go back the way you came. it isn't there anymore.\"" },
-            { coords = vector3(1034.0, 808.0, 25.0), type = 'tape', text = "TAPE 09 — \"found a door. almond water on the other side. i think.\"" },
+        [1] = { -- lv01: tapes on the S side, away from the N exits
+            { coords = vector3(1024.84, 795.09, 25.9), type = 'tape', text = "TAPE 04 — \"the lights hum in B-flat. counted 1,400 before i stopped.\"" },
+            { coords = vector3(1016.84, 795.09, 25.9), type = 'log',  text = "NOTE — \"don't go back the way you came. it isn't there anymore.\"" },
+            { coords = vector3(1020.84, 793.50, 25.9), type = 'tape', text = "TAPE 09 — \"found a door. almond water on the other side. i think.\"" },
         },
-        [2] = {
-            { coords = vector3(1782.0, -271.0, 19.8), type = 'log',  text = "MEMO — \"the walls are warm here. that means something is awake.\"" },
-            { coords = vector3(1776.0, -277.0, 19.8), type = 'tape', text = "TAPE 12 — \"i keep hearing my own footsteps a half-second late.\"" },
+        [2] = { -- lv02: tapes on the far diagonal from the exits
+            { coords = vector3(1770.18, -264.04, 20.7), type = 'log',  text = "MEMO — \"the walls are warm here. that means something is awake.\"" },
+            { coords = vector3(1790.18, -284.04, 20.7), type = 'tape', text = "TAPE 12 — \"i keep hearing my own footsteps a half-second late.\"" },
         },
-        [3] = {
-            { coords = vector3(358.0, 5532.0, 13.5), type = 'tape', text = "TAPE 02 — \"if you're watching this, i never made it back. keep moving.\"" },
-            { coords = vector3(353.0, 5527.0, 13.5), type = 'log',  text = "NOTE — \"the exits move. learn the hum, not the map.\"" },
+        [3] = { -- lv03: tapes on the far diagonal from the exits
+            { coords = vector3(344.4, 5542.5, 14.4), type = 'tape', text = "TAPE 02 — \"if you're watching this, i never made it back. keep moving.\"" },
+            { coords = vector3(368.4, 5518.5, 14.4), type = 'log',  text = "NOTE — \"the exits move. learn the hum, not the map.\"" },
         },
-        [4] = {
-            { coords = vector3(-2283.0, 1434.0, 81.0), type = 'log',  text = "PAGE 7 — \"day 19. the smiling one only moves when i blink.\"" },
-            { coords = vector3(-2288.0, 1429.0, 81.0), type = 'tape', text = "TAPE 17 — \"there's a pool. it's the only warm sound left.\"" },
+        [4] = { -- REAL coords from lv04 ymap; tapes on the far diagonal from the exits
+            { coords = vector3(-2278.88, 1439.96, 81.7), type = 'log',  text = "PAGE 7 — \"day 19. the smiling one only moves when i blink.\"" },
+            { coords = vector3(-2296.88, 1421.96, 81.7), type = 'tape', text = "TAPE 17 — \"there's a pool. it's the only warm sound left.\"" },
+        },
+    },
+}
+
+-------------------------------------------------------------------------------
+-- [ SECTION 8: ALMOND WATER — survival counterplay ] --
+-------------------------------------------------------------------------------
+
+-- Almond Water (canon): the only thing that keeps you coherent down here. Bottles
+-- are scattered per visit (server pool); walk up and press [E] to DRINK on the
+-- spot — restores sanity. Standalone-first: no inventory needed (drinking is a
+-- deliberate [E], so it's never force-wasted; a near-full drink is just refused).
+-- (Framework-inventory mode — Almond Water as a real, stockpilable/tradeable item
+-- via the F8 bridge — is an additive 2.1 layer, not wired here.)
+-- FAKE placeholder coords until Iakko's map — grab real ones with /brhere.
+MBT.AlmondWater = {
+    Enabled       = true,
+    SpawnPerVisit = 2,
+    PickupRange   = 1.8,
+    SanityRestore = 35,                 -- sanity points per bottle (capped at 100)
+    PropModel     = 'prop_ld_flow_bottle', -- water bottle (swap if it doesn't spawn)
+    Pool = {
+        [1] = { -- lv01: bottles S side near the tapes
+            { coords = vector3(1022.84, 796.09, 25.9) },
+            { coords = vector3(1018.84, 796.09, 25.9) },
+        },
+        [2] = { -- lv02: bottles mid, ≥10m from exits
+            { coords = vector3(1776.18, -270.04, 20.7) },
+            { coords = vector3(1784.18, -278.04, 20.7) },
+        },
+        [3] = { -- lv03: bottles near the spawn (≥10m from exits)
+            { coords = vector3(360.4, 5534.5, 14.4) },
+            { coords = vector3(352.4, 5526.5, 14.4) },
+        },
+        [4] = { -- REAL coords from lv04 ymap; bottles near centre (≥10m from exits)
+            { coords = vector3(-2284.88, 1427.96, 81.7) },
+            { coords = vector3(-2290.88, 1433.96, 81.7) },
         },
     },
 }

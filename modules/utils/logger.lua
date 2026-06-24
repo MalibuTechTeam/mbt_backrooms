@@ -1,7 +1,8 @@
 --[[ MalibuTech logger — canonical, vendored utility.
 
-  Single source of truth: copy this file VERBATIM into every mbt_* resource and
-  load it as a shared_script right after config.lua. FiveM already prefixes
+  Single source of truth: copy this file into every mbt_* resource — verbatim
+  except the PER-RESOURCE IDENTITY block at the top (the badge tag + colour) —
+  and load it as a shared_script. FiveM already prefixes
   every print with "[script:<resource>]", so this logger adds only what's
   missing: a coloured severity tag, an optional timestamp (the raw FXServer
   console has none of its own), the caller file:line on warnings/errors, and
@@ -14,7 +15,7 @@
     MBTLog.Error(...)  -- + caller file:line
     MBTLog.Log(level, ...)
 
-  Config (set MBT.Log.* in config.lua to override; read at call time):
+  Config (set in the PER-RESOURCE IDENTITY block at the top; read at call time):
     Level     = "debug"  -- minimum printed: debug < info < warn < error
     Timestamp = true     -- prepend HH:MM:SS
     Caller    = "auto"   -- file:line: "never" | "auto" (debug+warn+error) | "always"
@@ -23,7 +24,18 @@
 ]]
 
 MBT = MBT or {}
+
+-- ── PER-RESOURCE IDENTITY ────────────────────────────────────────────────────
+-- The ONLY lines that differ between resources: this resource's console badge.
+-- Everything below is copied verbatim into every mbt_* script. It lives here,
+-- not in config.lua, because the badge is the resource's identity — not a
+-- server-owner setting.
 MBT.Log = MBT.Log or {}
+MBT.Log.Tag = 'BR'     -- short badge, printed as [BR]
+MBT.Log.Color = '^6'   -- badge colour (^0-^9) — ^6 = magenta
+-- MBT.Log.Timestamp = false  -- default true (prepend HH:MM:SS)
+-- MBT.Log.Caller = 'always'  -- 'never' | 'auto' (default: debug+warn+error) | 'always'
+-- ─────────────────────────────────────────────────────────────────────────────
 
 local DEFAULTS = {
 	Level = "debug",

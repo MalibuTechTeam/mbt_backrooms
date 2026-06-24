@@ -4,8 +4,10 @@ Locales['es'] = {
     ["prompt_enter"]        = "entrar",
     ["prompt_leave"]        = "salir",
     ["prompt_take"]         = "grabar",
+    ["prompt_drink"]        = "beber",
     ["keymapping_label"]    = "Backrooms: atravesar",
     ["keymapping_take"]     = "Backrooms: recoger grabación",
+    ["keymapping_drink"]    = "Backrooms: beber Almond Water",
     ["notify_entered"]      = "Hiciste no-clip fuera de la realidad...",
     ["notify_recovered"]    = "Recuperadas %d grabaciones de las Backrooms",
 }
