@@ -27,7 +27,7 @@ end
 -- caller can avoid consuming the item for nothing.
 function Sanity.Restore(src, amount)
     if not cfg.Enabled then return false end
-    if get(src) >= 98 then return false end
+    if get(src) >= (cfg.FullThreshold or 98) then return false end
     set(src, get(src) + (amount or 0))
     return true
 end

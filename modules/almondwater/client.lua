@@ -39,7 +39,7 @@ local function spawnProp(i, x, y, z)
         MBTLog.Warn('almond water prop failed to load — swap MBT.AlmondWater.PropModel:', model)
         return
     end
-    local obj = CreateObject(hash, x, y, z + 1.0, false, false, false) -- raised so it lands on the floor
+    local obj = CreateObject(hash, x, y, z + 1.0, false, false, false) -- raised: see artifacts spawnProp
     SetEntityAsMissionEntity(obj, true, true)
     PlaceObjectOnGroundProperly(obj)
     FreezeEntityPosition(obj, true)
@@ -143,8 +143,8 @@ end
 
 RegisterCommand('mbt_almond_drink', function()
     if not nearestIdx or isLocked() or drinking then return end
-    -- Skip the whole thing if already (near) full — server would refuse anyway.
-    if (LocalPlayer.state['mbt_backrooms:sanity'] or 100) >= 98 then return end
+    -- Skip if already (near) full — server would refuse anyway.
+    if (LocalPlayer.state['mbt_backrooms:sanity'] or 100) >= (MBT.Sanity.FullThreshold or 98) then return end
     drinking = true
     local idx = nearestIdx
     playDrink(function()
@@ -156,7 +156,7 @@ RegisterKeyMapping('mbt_almond_drink',
     (MBT.Locale and MBT.Locale.keymapping_drink) or 'Backrooms: drink Almond Water',
     'keyboard', MBT.General.InteractKey)
 
--- Drank one: remove the prop (sanity vignette eases on its own as sanity rises).
+-- Drank: remove the prop (the sanity vignette eases on its own).
 RegisterNetEvent('mbt_backrooms:almondDrunk', function(poolIndex)
     taken[poolIndex] = true
     local obj = props[poolIndex]
@@ -164,9 +164,6 @@ RegisterNetEvent('mbt_backrooms:almondDrunk', function(poolIndex)
     props[poolIndex], current[poolIndex] = nil, nil
     if shownIdx == poolIndex then hidePrompt() end
 end)
-
--- Too coherent to bother (near-full): bottle left for later. Hook for a cue.
-RegisterNetEvent('mbt_backrooms:almondFull', function() end)
 
 AddStateBagChangeHandler(STATE_INLEVEL, '', function(bag, _, value)
     local ply = GetPlayerFromStateBagName(bag)

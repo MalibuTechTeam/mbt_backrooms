@@ -64,7 +64,6 @@ CreateThread(function()
         local active = LocalPlayer.state[STATE_INLEVEL] and LocalPlayer.state[STATE_ARTIFACTS]
 
         if type(active) == 'table' and #active > 0 then
-            -- sync props to the active set
             local want = {}
             for _, a in ipairs(active) do if not taken[a.i] then want[a.i] = a end end
             for i, obj in pairs(props) do
@@ -78,7 +77,6 @@ CreateThread(function()
                 if not props[i] then current[i] = a; spawnProp(i, a.x, a.y, a.z) end
             end
 
-            -- proximity -> nearest within pickup range
             local pc = GetEntityCoords(PlayerPedId())
             local best, bestD = nil, 1e9
             for i, a in pairs(current) do

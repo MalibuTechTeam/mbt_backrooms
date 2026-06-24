@@ -79,7 +79,7 @@ export default function App() {
   useNuiEvent<{ level?: number }>('entity:strain', (d) => setStrain(d?.level ?? 0))
   useNuiEvent<{ durationMs?: number }>('entity:blink', (d) => {
     setBlinkMs(d?.durationMs ?? 220)
-    setBlinkKey((k) => k + 1) // remount -> replay the blink
+    setBlinkKey((k) => k + 1)
   })
 
   // Curated exits: ambient proximity tell + soft pull-in warp.
@@ -92,7 +92,7 @@ export default function App() {
   useNuiEvent<{ text?: string; kind?: string }>('log:show', (d) => {
     if (!d?.text) return
     setLog({ text: d.text, kind: d.kind })
-    setLogKey((k) => k + 1) // remount -> replay
+    setLogKey((k) => k + 1)
   })
 
   useNuiEvent('atmosphere:stopAll', () => {

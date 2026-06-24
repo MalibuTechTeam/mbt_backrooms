@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useSelfUnmount } from '../utils/useSelfUnmount'
 import './BlinkOverlay.css'
 
 interface Props {
@@ -12,12 +12,7 @@ interface Props {
  * after durationMs. Cheap in CEF — opacity only, no filters/blend.
  */
 export default function BlinkOverlay({ durationMs, reduceMotion }: Props) {
-  const [show, setShow] = useState(true)
-  useEffect(() => {
-    const t = setTimeout(() => setShow(false), durationMs)
-    return () => clearTimeout(t)
-  }, [durationMs])
-  if (!show) return null
+  if (!useSelfUnmount(durationMs)) return null
   return (
     <div
       className={reduceMotion ? 'blink blink--rm' : 'blink'}

@@ -25,7 +25,9 @@ local function setWeaponTorch(on)
         SetCurrentPedWeapon(ped, FLASHLIGHT, true)
     else
         RemoveWeaponFromPed(ped, FLASHLIGHT)
-        if prevWeapon then SetCurrentPedWeapon(ped, prevWeapon, true) end
+        if prevWeapon and HasPedGotWeapon(ped, prevWeapon, false) then
+            SetCurrentPedWeapon(ped, prevWeapon, true)
+        end
         prevWeapon = nil
     end
 end
@@ -41,12 +43,23 @@ local function reset()
     if torchOn then setTorch(false) end
 end
 
-RegisterCommand('mbt_torch', function()
-    if cfg.Enabled and inLevel() then setTorch(not torchOn) end
-end, false)
+local function toggle()
+    if not cfg.Enabled then return end
+    if not inLevel() then
+        if MBT.Debug then MBTLog.Debug('torch: ignored (not inside a level)') end
+        return
+    end
+    setTorch(not torchOn)
+    if MBT.Debug then MBTLog.Debug('torch toggled ->', torchOn, '| mode', cfg.Mode) end
+end
+
+RegisterCommand('mbt_torch', toggle, false)
 RegisterKeyMapping('mbt_torch',
     (MBT.Locale and MBT.Locale.keymapping_torch) or 'Backrooms: toggle torch',
     'keyboard', cfg.Key or 'F')
+
+-- Debug: toggle from chat (independent of the F keybind, to isolate keybind issues).
+if MBT.Debug then RegisterCommand('brtorch', toggle, false) end
 
 -- Drawn-cone mode: spotlight from the gameplay camera, only while on + inside.
 CreateThread(function()

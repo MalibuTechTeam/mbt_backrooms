@@ -7,12 +7,10 @@ local cfg = MBT.AlmondWater
 local STATE_INLEVEL = 'mbt_backrooms:inLevel'
 local STATE_WATER   = 'mbt_backrooms:almondwater'
 
-local taken = {} -- taken[src] = { [poolIndex] = true } for the current level
-
 local function activate(src, level)
     local pool = cfg.Pool and cfg.Pool[level]
     if not pool or #pool == 0 then
-        Player(src).state:set(STATE_WATER, {}, true); taken[src] = nil; return
+        Player(src).state:set(STATE_WATER, {}, true); return
     end
     local idx = {}
     for i = 1, #pool do idx[i] = i end
@@ -23,7 +21,6 @@ local function activate(src, level)
         local b = pool[idx[k]]
         active[#active + 1] = { i = idx[k], x = b.coords.x, y = b.coords.y, z = b.coords.z }
     end
-    taken[src] = {}
     Player(src).state:set(STATE_WATER, active, true)
 end
 
@@ -31,11 +28,7 @@ if cfg and cfg.Enabled then
     AddStateBagChangeHandler(STATE_INLEVEL, nil, function(bagName, _, value)
         local src = GetPlayerFromStateBagName(bagName)
         if src == 0 then return end
-        if value then
-            activate(src, value)
-        else
-            Player(src).state:set(STATE_WATER, {}, true); taken[src] = nil
-        end
+        if value then activate(src, value) else Player(src).state:set(STATE_WATER, {}, true) end
     end)
 
     RegisterNetEvent('mbt_backrooms:requestDrink', function(poolIndex)
@@ -48,31 +41,24 @@ if cfg and cfg.Enabled then
         local bottle = pool and pool[poolIndex]
         if not bottle then return end
 
+        -- The published active set is the dedupe source of truth: once drunk the
+        -- bottle is pruned below, so a repeat request fails this check.
         local active = Player(src).state[STATE_WATER]
         local isActive = false
         if type(active) == 'table' then
             for _, a in ipairs(active) do if a.i == poolIndex then isActive = true break end end
         end
         if not isActive then return end
-        if taken[src] and taken[src][poolIndex] then return end
 
         local ped = GetPlayerPed(src)
         if not ped or ped == 0 or #(GetEntityCoords(ped) - bottle.coords) > ((cfg.PickupRange or 1.8) + 2.0) then return end
 
-        -- Drink on the spot. If (near) full, Sanity.Restore returns false -> leave
-        -- the bottle for later instead of wasting it.
-        if not (Sanity and Sanity.Restore and Sanity.Restore(src, cfg.SanityRestore or 35)) then
-            TriggerClientEvent('mbt_backrooms:almondFull', src) -- "no point drinking now"
-            return
-        end
+        -- If (near) full, Sanity.Restore returns false -> leave the bottle for later.
+        if not (Sanity and Sanity.Restore and Sanity.Restore(src, cfg.SanityRestore or 35)) then return end
 
-        taken[src] = taken[src] or {}
-        taken[src][poolIndex] = true
         local remaining = {}
         for _, a in ipairs(active) do if a.i ~= poolIndex then remaining[#remaining + 1] = a end end
         Player(src).state:set(STATE_WATER, remaining, true)
         TriggerClientEvent('mbt_backrooms:almondDrunk', src, poolIndex)
     end)
-
-    AddEventHandler('playerDropped', function() taken[source] = nil end)
 end

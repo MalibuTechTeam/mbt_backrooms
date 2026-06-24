@@ -7,12 +7,10 @@ local cfg = MBT.Artifacts
 local STATE_INLEVEL   = 'mbt_backrooms:inLevel'
 local STATE_ARTIFACTS = 'mbt_backrooms:artifacts'
 
-local carried = {}    -- carried[src] = count carried this run (kept across levels)
-local collected = {}  -- collected[src] = { [poolIndex] = true } for the current level
+local carried = {} -- carried[src] = count carried this run (kept across levels)
 
 local function clearState(src)
     Player(src).state:set(STATE_ARTIFACTS, {}, true)
-    collected[src] = nil
 end
 
 -- Scatter SpawnPerVisit artifacts from the level pool; publish {i,x,y,z,type}.
@@ -32,7 +30,6 @@ local function activate(src, level)
         local a = pool[idx[k]]
         active[#active + 1] = { i = idx[k], x = a.coords.x, y = a.coords.y, z = a.coords.z, type = a.type or 'log' }
     end
-    collected[src] = {}
     Player(src).state:set(STATE_ARTIFACTS, active, true)
 end
 
@@ -65,14 +62,13 @@ if cfg and cfg.Enabled then
         local art = pool and pool[poolIndex]
         if not art then return end
 
-        -- must be one of the player's currently active artifacts, not already taken
+        -- The published active set is the dedupe source of truth (pruned on collect).
         local active = Player(src).state[STATE_ARTIFACTS]
         local isActive = false
         if type(active) == 'table' then
             for _, a in ipairs(active) do if a.i == poolIndex then isActive = true break end end
         end
         if not isActive then return end
-        if collected[src] and collected[src][poolIndex] then return end
 
         local ped = GetPlayerPed(src)
         if not ped or ped == 0 or #(GetEntityCoords(ped) - art.coords) > ((cfg.PickupRange or 1.8) + 2.0) then
@@ -80,8 +76,6 @@ if cfg and cfg.Enabled then
             return
         end
 
-        collected[src] = collected[src] or {}
-        collected[src][poolIndex] = true
         carried[src] = (carried[src] or 0) + 1
 
         -- Drop it from the published set so the client despawns it and never
@@ -96,8 +90,6 @@ if cfg and cfg.Enabled then
     end)
 
     AddEventHandler('playerDropped', function()
-        local src = source
-        carried[src] = nil
-        collected[src] = nil
+        carried[source] = nil
     end)
 end

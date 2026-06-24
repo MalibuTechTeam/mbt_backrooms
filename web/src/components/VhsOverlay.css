@@ -24,7 +24,6 @@
   opacity: calc(0.6 * var(--vhs-intensity, 1));
 }
 
-/* Liminal yellow-tinted vignette */
 .vhs-vignette {
   position: absolute;
   inset: 0;

@@ -1,5 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useSelfUnmount } from '../utils/useSelfUnmount'
 import './LogCaption.css'
+
+const HOLD_MS = 6000 // single source of truth — the CSS fade reads it via --logcap-ms
 
 interface Props {
   text: string
@@ -13,14 +15,12 @@ interface Props {
  * (no HUD counter). Self-unmounts after the hold. CEF-cheap (opacity/transform).
  */
 export default function LogCaption({ text, kind, reduceMotion }: Props) {
-  const [show, setShow] = useState(true)
-  useEffect(() => {
-    const t = setTimeout(() => setShow(false), 6000)
-    return () => clearTimeout(t)
-  }, [text])
-  if (!show) return null
+  if (!useSelfUnmount(HOLD_MS)) return null
   return (
-    <div className={reduceMotion ? 'logcap logcap--rm' : 'logcap'}>
+    <div
+      className={reduceMotion ? 'logcap logcap--rm' : 'logcap'}
+      style={{ ['--logcap-ms' as string]: `${HOLD_MS}ms` }}
+    >
       <div className="logcap-tag">{kind === 'tape' ? '◉ REC' : '▤ LOG'}</div>
       <div className="logcap-text">{text}</div>
     </div>
