@@ -7,7 +7,8 @@ local cfg = MBT.Artifacts
 local STATE_INLEVEL   = 'mbt_backrooms:inLevel'
 local STATE_ARTIFACTS = 'mbt_backrooms:artifacts'
 
-local carried = {} -- carried[src] = count carried this run (kept across levels)
+local carrying  = {} -- carrying[src]  = { [id] = true } collected this run (kept across levels)
+local recovered = {} -- recovered[src] = { [id] = true } — the Archive (recovered on the surface)
 
 local function clearState(src)
     Player(src).state:set(STATE_ARTIFACTS, {}, true)
@@ -41,13 +42,19 @@ if cfg and cfg.Enabled then
         if value then
             activate(src, value) -- new level: fresh scatter (carried count is kept)
         else
-            local n = carried[src] or 0
-            if n > 0 and Bridge and Bridge.Notify then
-                local msg = (MBT.Locale and MBT.Locale.notify_recovered)
-                    or 'Recovered %d recording(s) from the Backrooms'
-                Bridge.Notify(src, msg:format(n))
+            -- Surface: everything carried this run becomes recovered (the archive).
+            local ids = carrying[src]
+            if ids then
+                recovered[src] = recovered[src] or {}
+                local n = 0
+                for id in pairs(ids) do recovered[src][id] = true; n = n + 1 end
+                if n > 0 and Bridge and Bridge.Notify then
+                    local msg = (MBT.Locale and MBT.Locale.notify_recovered)
+                        or 'Recovered %d recording(s) from the Backrooms'
+                    Bridge.Notify(src, msg:format(n))
+                end
             end
-            carried[src] = 0
+            carrying[src] = nil
             clearState(src)
         end
     end)
@@ -76,7 +83,8 @@ if cfg and cfg.Enabled then
             return
         end
 
-        carried[src] = (carried[src] or 0) + 1
+        carrying[src] = carrying[src] or {}
+        carrying[src][art.id or ('lv' .. level .. '_' .. poolIndex)] = true
 
         -- Drop it from the published set so the client despawns it and never
         -- respawns it (otherwise the prop + its [E] prompt come straight back).
@@ -89,7 +97,15 @@ if cfg and cfg.Enabled then
         TriggerClientEvent('mbt_backrooms:artifactCollected', src, poolIndex, art.text or '', art.type or 'log')
     end)
 
+    -- Surface terminal (Section 10) asks for the player's archive (recovered ids).
+    RegisterNetEvent('mbt_backrooms:openArchive', function()
+        local src = source
+        local rec, ids = recovered[src], {}
+        if type(rec) == 'table' then for id in pairs(rec) do ids[#ids + 1] = id end end
+        TriggerClientEvent('mbt_backrooms:archiveData', src, ids)
+    end)
+
     AddEventHandler('playerDropped', function()
-        carried[source] = nil
+        carrying[source], recovered[source] = nil, nil
     end)
 end

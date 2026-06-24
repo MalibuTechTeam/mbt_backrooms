@@ -1,0 +1,85 @@
+/* Interactive archive panel — focused (cursor), so it sits above the passive
+   overlays. CRT/VHS look, CEF-cheap (no backdrop-filter/blend). */
+.arc {
+  position: fixed;
+  inset: 0;
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+  font-family: 'Courier New', monospace;
+  color: rgba(225, 230, 215, 0.95);
+}
+
+.arc-panel {
+  width: min(720px, 80vw);
+  max-height: 72vh;
+  display: flex;
+  flex-direction: column;
+  background: rgba(12, 14, 10, 0.96);
+  border: 1px solid rgba(120, 200, 150, 0.25);
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.8), inset 0 0 80px rgba(40, 60, 30, 0.15);
+}
+
+.arc-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(120, 200, 150, 0.2);
+}
+.arc-title {
+  letter-spacing: 0.18em;
+  color: #6fd08c;
+  text-shadow: 0 0 8px rgba(111, 208, 140, 0.4);
+}
+.arc-close {
+  background: none;
+  border: 1px solid rgba(120, 200, 150, 0.3);
+  color: rgba(225, 230, 215, 0.8);
+  font-family: inherit;
+  padding: 4px 10px;
+  cursor: pointer;
+  letter-spacing: 0.1em;
+}
+.arc-close:hover { background: rgba(120, 200, 150, 0.12); }
+
+.arc-list {
+  list-style: none;
+  margin: 0;
+  padding: 10px 0;
+  overflow-y: auto;
+}
+.arc-item {
+  display: flex;
+  gap: 12px;
+  padding: 10px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  line-height: 1.5;
+}
+.arc-tag {
+  flex: 0 0 auto;
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  padding: 2px 6px;
+  height: fit-content;
+  border: 1px solid currentColor;
+}
+.arc-tag--tape { color: #d9433f; }
+.arc-tag--log  { color: #7fa8c9; }
+.arc-text { flex: 1; }
+
+.arc-empty {
+  padding: 40px 18px;
+  text-align: center;
+  opacity: 0.6;
+  line-height: 1.6;
+}
+.arc-foot {
+  padding: 10px 18px;
+  border-top: 1px solid rgba(120, 200, 150, 0.2);
+  font-size: 0.8rem;
+  opacity: 0.6;
+  letter-spacing: 0.1em;
+}

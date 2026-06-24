@@ -45,6 +45,7 @@ client_scripts {
   'modules/artifacts/client.lua',
   'modules/almondwater/client.lua',
   'modules/light/client.lua',
+  'modules/archive/client.lua',
   'modules/sanity/client.lua',
   'modules/entities/client.lua',
   'core/client.lua'

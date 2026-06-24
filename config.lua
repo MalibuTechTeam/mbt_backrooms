@@ -230,23 +230,24 @@ MBT.Artifacts = {
     SpawnPerVisit = 2,
     PickupRange   = 1.8,
     PropModel     = 'prop_notepad_01', -- swap if it doesn't spawn
+    -- `id` is a stable unique key (used by the Archive to track what you've recovered).
     Pool = {
         [1] = {
-            { coords = vector3(1024.84, 795.09, 25.9), type = 'tape', text = "TAPE 04 — \"the lights hum in B-flat. counted 1,400 before i stopped.\"" },
-            { coords = vector3(1016.84, 795.09, 25.9), type = 'log',  text = "NOTE — \"don't go back the way you came. it isn't there anymore.\"" },
-            { coords = vector3(1020.84, 793.50, 25.9), type = 'tape', text = "TAPE 09 — \"found a door. almond water on the other side. i think.\"" },
+            { id = 'tape04', coords = vector3(1024.84, 795.09, 25.9), type = 'tape', text = "TAPE 04 — \"the lights hum in B-flat. counted 1,400 before i stopped.\"" },
+            { id = 'note01', coords = vector3(1016.84, 795.09, 25.9), type = 'log',  text = "NOTE — \"don't go back the way you came. it isn't there anymore.\"" },
+            { id = 'tape09', coords = vector3(1020.84, 793.50, 25.9), type = 'tape', text = "TAPE 09 — \"found a door. almond water on the other side. i think.\"" },
         },
         [2] = {
-            { coords = vector3(1770.18, -264.04, 20.7), type = 'log',  text = "MEMO — \"the walls are warm here. that means something is awake.\"" },
-            { coords = vector3(1790.18, -284.04, 20.7), type = 'tape', text = "TAPE 12 — \"i keep hearing my own footsteps a half-second late.\"" },
+            { id = 'memo01', coords = vector3(1770.18, -264.04, 20.7), type = 'log',  text = "MEMO — \"the walls are warm here. that means something is awake.\"" },
+            { id = 'tape12', coords = vector3(1790.18, -284.04, 20.7), type = 'tape', text = "TAPE 12 — \"i keep hearing my own footsteps a half-second late.\"" },
         },
         [3] = {
-            { coords = vector3(344.4, 5542.5, 14.4), type = 'tape', text = "TAPE 02 — \"if you're watching this, i never made it back. keep moving.\"" },
-            { coords = vector3(368.4, 5518.5, 14.4), type = 'log',  text = "NOTE — \"the exits move. learn the hum, not the map.\"" },
+            { id = 'tape02', coords = vector3(344.4, 5542.5, 14.4), type = 'tape', text = "TAPE 02 — \"if you're watching this, i never made it back. keep moving.\"" },
+            { id = 'note02', coords = vector3(368.4, 5518.5, 14.4), type = 'log',  text = "NOTE — \"the exits move. learn the hum, not the map.\"" },
         },
         [4] = {
-            { coords = vector3(-2278.88, 1439.96, 81.7), type = 'log',  text = "PAGE 7 — \"day 19. the smiling one only moves when i blink.\"" },
-            { coords = vector3(-2296.88, 1421.96, 81.7), type = 'tape', text = "TAPE 17 — \"there's a pool. it's the only warm sound left.\"" },
+            { id = 'page07', coords = vector3(-2278.88, 1439.96, 81.7), type = 'log',  text = "PAGE 7 — \"day 19. the smiling one only moves when i blink.\"" },
+            { id = 'tape17', coords = vector3(-2296.88, 1421.96, 81.7), type = 'tape', text = "TAPE 17 — \"there's a pool. it's the only warm sound left.\"" },
         },
     },
 }
@@ -304,4 +305,23 @@ MBT.Light = {
     Range           = 25.0, -- spotlight mode tuning
     Brightness      = 4.0,
     Radius          = 7.0,
+}
+
+-------------------------------------------------------------------------------
+-- [ SECTION 10: ARCHIVE — review recovered tapes on a surface terminal ] --
+-------------------------------------------------------------------------------
+
+-- A CRT terminal on the surface where recovered tapes/logs (Section 7) are reviewed:
+-- walk up, [E], a found-footage archive lists what you've recovered + plays back each
+-- log's text. The payoff of the recover loop. Persist = false = session-only
+-- (standalone); KVP/framework persistence is a 2.1 add.
+MBT.Archive = {
+    Enabled     = true,
+    Persist     = false,            -- false = per-session (resets on relog)
+    PromptRange = 1.8,
+    PropModel   = 'prop_tv_flat_01', -- terminal prop (swap if it doesn't spawn)
+    -- Surface terminal(s). FAKE placeholder — grab a real spot with /brhere.
+    Terminals = {
+        { coords = vector3(-1108.0, -2008.0, 13.2), heading = 0.0 },
+    },
 }

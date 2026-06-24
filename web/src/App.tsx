@@ -9,6 +9,7 @@ import StrainVignette from './components/StrainVignette'
 import BlinkOverlay from './components/BlinkOverlay'
 import ExitWarp from './components/ExitWarp'
 import LogCaption from './components/LogCaption'
+import Archive from './components/Archive'
 import InteractPrompt from './components/InteractPrompt'
 import { atmosphereAudio } from './audio/atmosphereAudio'
 
@@ -55,6 +56,7 @@ export default function App() {
   const [blinkMs, setBlinkMs] = useState(220)
   const [log, setLog] = useState<{ text: string; kind?: string } | null>(null)
   const [logKey, setLogKey] = useState(0)
+  const [archive, setArchive] = useState<{ tapes: { id: string; type?: string; text: string }[] } | null>(null)
   const [prompt, setPrompt] = useState<PromptData | null>(null)
 
   useNuiEvent<AtmoState>('atmosphere:state', (d) => setAtmo(d ?? { active: false }))
@@ -95,6 +97,12 @@ export default function App() {
     setLogKey((k) => k + 1)
   })
 
+  // Archive terminal: open/close the interactive recovered-tapes panel.
+  useNuiEvent<{ tapes?: { id: string; type?: string; text: string }[] }>('archive:open', (d) =>
+    setArchive({ tapes: d?.tapes ?? [] }),
+  )
+  useNuiEvent('archive:close', () => setArchive(null))
+
   useNuiEvent('atmosphere:stopAll', () => {
     setAtmo({ active: false })
     setDread(0)
@@ -125,6 +133,7 @@ export default function App() {
       {glitchKey > 0 && <EntryGlitch key={glitchKey} intensity={glitchIntensity} />}
       {blinkKey > 0 && <BlinkOverlay key={blinkKey} durationMs={blinkMs} reduceMotion={atmo.reduceMotion} />}
       {logKey > 0 && log && <LogCaption key={logKey} text={log.text} kind={log.kind} reduceMotion={atmo.reduceMotion} />}
+      {archive && <Archive tapes={archive.tapes} />}
     </>
   )
 }
