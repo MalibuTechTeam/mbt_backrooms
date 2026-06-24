@@ -50,7 +50,6 @@ client_scripts {
 ui_page 'web/dist/index.html'
 
 files {
-  'interiorproxies.meta',
   'data/peds.meta',
   'web/dist/index.html',
   'web/dist/assets/**',
