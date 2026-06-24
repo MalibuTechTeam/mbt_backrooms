@@ -119,6 +119,16 @@ MBT.Atmosphere = {
     -- Global intensity per family (0.0 - 1.0).
     Intensity = { Native = 0.85, NUI = 0.75, Audio = 0.55 },
 
+    -- How dark the level is (so the torch matters). Layered via the SECONDARY
+    -- timecycle slot, independent of the mood variant below. Owner's taste knob:
+    --   Strength 0.0 = no extra darkening (bright) ... 1.0 = very dark (torch
+    --   near-mandatory). ~0.3–0.5 = "dim/oppressive, failing fluorescents" (recommended).
+    Darkness = {
+        Enabled  = true,
+        Modifier = 'NG_blackout', -- a darkening timecycle modifier (swap for taste)
+        Strength = 0.4,
+    },
+
     -- Accessibility
     ReduceMotion   = false, -- disables camera shake + screen-tear displacement
     ReduceFlashing = false, -- disables light flicker + glitch strobe

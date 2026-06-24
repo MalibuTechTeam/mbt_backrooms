@@ -69,6 +69,13 @@ function Atmosphere.Enter(level)
             SetTimecycleModifierStrength((variant.strength or 1.0) * (A.Intensity.Native or 1.0))
         end
     end
+    -- Configurable darkness on the SECONDARY slot (so the torch matters) — owner
+    -- tunes A.Darkness.Strength; independent of the mood variant above.
+    local dk = A.Darkness
+    if dk and dk.Enabled and dk.Modifier and (dk.Strength or 0) > 0 then
+        SetExtraTimecycleModifier(dk.Modifier)
+        SetExtraTimecycleModifierStrength(dk.Strength)
+    end
     if enabled(A.Effects.LightFlicker) and not A.ReduceFlashing then
         flickerGen = flickerGen + 1
         flickerLoop(flickerGen)
@@ -120,6 +127,7 @@ function Atmosphere.Exit()
 
     -- Native cleanup
     ClearTimecycleModifier()
+    ClearExtraTimecycleModifier()
     flickerGen = flickerGen + 1            -- cancel pending flicker bursts
     cameraGen = cameraGen + 1              -- stop the first-person lock loop
     SetArtificialLightsState(false)        -- never leave lights off
@@ -182,6 +190,7 @@ end)
 AddEventHandler('onResourceStop', function(resource)
     if resource ~= GetCurrentResourceName() then return end
     ClearTimecycleModifier()
+    ClearExtraTimecycleModifier()
     SetArtificialLightsState(false)
     StopGameplayCamShaking(true)
     if activePostFx then AnimpostfxStop(activePostFx) end
