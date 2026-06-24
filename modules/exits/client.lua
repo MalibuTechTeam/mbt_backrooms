@@ -50,8 +50,11 @@ local function updatePullPtfx(progress, x, y, z)
     if not pullPtfx then
         if not ensurePtfxAsset() then return end
         UseParticleFxAsset(Ptfx.Dict)
-        pullPtfx = StartParticleFxLoopedAtCoord(Ptfx.Name, x, y, z, 0.0, 0.0, 0.0,
+        -- raise off the floor so the swirl reads in first person (you're standing
+        -- in the exit; a ground-level column at your feet is hard to see).
+        pullPtfx = StartParticleFxLoopedAtCoord(Ptfx.Name, x, y, z + 0.8, 0.0, 0.0, 0.0,
             Ptfx.MinScale or 0.2, false, false, false, false)
+        if MBT.Debug then MBTLog.Debug('pull-in ptfx spawned', Ptfx.Name, 'at', x, y, z + 0.8, 'handle', pullPtfx) end
     end
     if pullPtfx and DoesParticleFxLoopedExist(pullPtfx) then
         local f = (progress - startAt) / math.max(0.001, 1.0 - startAt)
