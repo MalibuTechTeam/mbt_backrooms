@@ -336,7 +336,11 @@ MBT.AlmondWater = {
     SpawnPerVisit = 2,
     PickupRange   = 1.8,
     SanityRestore = 35,                 -- sanity points per bottle (capped at 100)
-    PropModel     = 'prop_ld_flow_bottle', -- water bottle (swap if it doesn't spawn)
+    PropModel     = 'prop_ld_flow_bottle', -- world pickup prop (swap if it doesn't spawn)
+    -- Drink animation (ox_inventory-style): plays for UseTime, THEN restores sanity.
+    UseTime  = 2500,
+    Anim     = { dict = 'mp_player_intdrink', clip = 'loop_bottle' },
+    HeldProp = { model = 'prop_ld_flow_bottle', pos = vector3(0.03, 0.03, 0.02), rot = vector3(0.0, 0.0, -1.5) },
     Pool = {
         [1] = { -- lv01: bottles S side near the tapes
             { coords = vector3(1022.84, 796.09, 25.9) },

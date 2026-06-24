@@ -102,10 +102,55 @@ CreateThread(function()
     end
 end)
 
-RegisterCommand('mbt_almond_drink', function()
-    if nearestIdx and not isLocked() then
-        TriggerServerEvent('mbt_backrooms:requestDrink', nearestIdx)
+local drinking = false
+
+-- Play the drink animation (ox-style) with a bottle in hand for UseTime, then cb().
+local function playDrink(cb)
+    local ped = PlayerPedId()
+    local useTime = cfg.UseTime or 2500
+    local prop = nil
+
+    local hp = cfg.HeldProp
+    if hp and hp.model then
+        local h = GetHashKey(hp.model)
+        RequestModel(h)
+        local t = 1000
+        while not HasModelLoaded(h) and t > 0 do Wait(20); t = t - 20 end
+        if HasModelLoaded(h) then
+            local c = GetEntityCoords(ped)
+            prop = CreateObject(h, c.x, c.y, c.z, true, true, false)
+            local bone = GetPedBoneIndex(ped, 57005) -- SKEL_R_Hand
+            AttachEntityToEntity(prop, ped, bone, hp.pos.x, hp.pos.y, hp.pos.z,
+                hp.rot.x, hp.rot.y, hp.rot.z, false, false, false, false, 2, true)
+            SetModelAsNoLongerNeeded(h)
+        end
     end
+
+    local anim = cfg.Anim
+    if anim and anim.dict then
+        RequestAnimDict(anim.dict)
+        local t = 1000
+        while not HasAnimDictLoaded(anim.dict) and t > 0 do Wait(20); t = t - 20 end
+        TaskPlayAnim(ped, anim.dict, anim.clip, 8.0, -8.0, useTime, 49, 0.0, false, false, false)
+    end
+
+    SetTimeout(useTime, function()
+        if prop and DoesEntityExist(prop) then DeleteEntity(prop) end
+        if anim and anim.dict then StopAnimTask(PlayerPedId(), anim.dict, anim.clip, 3.0) end
+        cb()
+    end)
+end
+
+RegisterCommand('mbt_almond_drink', function()
+    if not nearestIdx or isLocked() or drinking then return end
+    -- Skip the whole thing if already (near) full — server would refuse anyway.
+    if (LocalPlayer.state['mbt_backrooms:sanity'] or 100) >= 98 then return end
+    drinking = true
+    local idx = nearestIdx
+    playDrink(function()
+        drinking = false
+        TriggerServerEvent('mbt_backrooms:requestDrink', idx)
+    end)
 end, false)
 RegisterKeyMapping('mbt_almond_drink',
     (MBT.Locale and MBT.Locale.keymapping_drink) or 'Backrooms: drink Almond Water',
