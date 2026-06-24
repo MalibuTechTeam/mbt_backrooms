@@ -69,13 +69,6 @@ function Atmosphere.Enter(level)
             SetTimecycleModifierStrength((variant.strength or 1.0) * (A.Intensity.Native or 1.0))
         end
     end
-    -- Configurable darkness on the SECONDARY slot (so the torch matters) — owner
-    -- tunes A.Darkness.Strength; independent of the mood variant above.
-    local dk = A.Darkness
-    if dk and dk.Enabled and dk.Modifier and (dk.Strength or 0) > 0 then
-        SetExtraTimecycleModifier(dk.Modifier)
-        SetExtraTimecycleModifierStrength(dk.Strength)
-    end
     if enabled(A.Effects.LightFlicker) and not A.ReduceFlashing then
         flickerGen = flickerGen + 1
         flickerLoop(flickerGen)
@@ -115,6 +108,7 @@ function Atmosphere.Enter(level)
             vhs = vhs,
             grain = vhs and A.Effects.Vhs.grain or false,
             reduceMotion = A.ReduceMotion or false,
+            gloom = (A.Darkness and A.Darkness.Enabled) and (A.Darkness.Strength or 0) or 0,
             hum = enabled(A.Effects.Hum) and audioVol(A.Effects.Hum) or false,
             drone = enabled(A.Effects.Drone) and audioVol(A.Effects.Drone) or false,
         },

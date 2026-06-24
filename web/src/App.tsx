@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNuiEvent } from './utils/useNuiEvent'
 import { debugData } from './utils/debugData'
+import GloomOverlay from './components/GloomOverlay'
 import VhsOverlay from './components/VhsOverlay'
 import EntryGlitch from './components/EntryGlitch'
 import SanityVignette from './components/SanityVignette'
@@ -18,6 +19,7 @@ interface AtmoState {
   vhs?: boolean
   grain?: boolean
   reduceMotion?: boolean
+  gloom?: number // 0..1 screen darkness
   hum?: number | false // final volume, or false to disable
   drone?: number | false
 }
@@ -114,6 +116,7 @@ export default function App() {
 
   return (
     <>
+      {atmo.active && (atmo.gloom ?? 0) > 0 && <GloomOverlay level={atmo.gloom!} />}
       {atmo.active && atmo.vhs && <VhsOverlay intensity={atmo.intensity ?? 1} grain={!!atmo.grain} reduceMotion={!!atmo.reduceMotion} />}
       {dread > 0 && <SanityVignette dread={dread} />}
       {strain > 0 && <StrainVignette level={strain} />}

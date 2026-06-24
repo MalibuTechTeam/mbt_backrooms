@@ -1,0 +1,15 @@
+/* Screen-space gloom: dims the level by --gloom so the torch's world light reads
+   against it. Sits at the BOTTOM of the overlay stack (z 0) — VHS/vignette/prompt
+   render on top. Slightly darker at the edges so the centre stays a touch clearer. */
+.gloom {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(0, 0, 0, calc(var(--gloom, 0) * 0.70)) 0%,
+    rgba(0, 0, 0, calc(var(--gloom, 0) * 0.92)) 100%
+  );
+  transition: background 400ms linear;
+}

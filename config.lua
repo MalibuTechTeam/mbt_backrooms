@@ -119,14 +119,13 @@ MBT.Atmosphere = {
     -- Global intensity per family (0.0 - 1.0).
     Intensity = { Native = 0.85, NUI = 0.75, Audio = 0.55 },
 
-    -- How dark the level is (so the torch matters). Layered via the SECONDARY
-    -- timecycle slot, independent of the mood variant below. Owner's taste knob:
-    --   Strength 0.0 = no extra darkening (bright) ... 1.0 = very dark (torch
-    --   near-mandatory). ~0.3–0.5 = "dim/oppressive, failing fluorescents" (recommended).
+    -- How dark the level feels (so the torch matters). A NUI gloom layer dims the
+    -- screen by `Strength` — predictable + linear (no timecycle guessing). The
+    -- torch's world light still reads brighter against it.
+    --   Strength 0.0 = off (bright) ... 1.0 = very dark. ~0.4–0.55 = dim/oppressive.
     Darkness = {
         Enabled  = true,
-        Modifier = 'NG_blackout', -- a darkening timecycle modifier (swap for taste)
-        Strength = 0.4,
+        Strength = 0.45,
     },
 
     -- Accessibility
