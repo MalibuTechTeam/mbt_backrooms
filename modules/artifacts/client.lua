@@ -10,6 +10,8 @@ local STATE_ARTIFACTS = 'mbt_backrooms:artifacts'
 
 local props = {}     -- props[poolIndex] = object handle
 local current = {}   -- current[poolIndex] = { x, y, z, type }
+local taken = {}     -- locally-collected indices — suppress respawn until the level changes
+                     -- (the state bag may still list a just-collected artifact for a frame)
 local nearestIdx = nil
 local shownIdx = nil
 
@@ -29,7 +31,7 @@ local function clearProps()
         if DoesEntityExist(obj) then DeleteEntity(obj) end
         props[i] = nil
     end
-    current, nearestIdx = {}, nil
+    current, nearestIdx, taken = {}, nil, {}
     hidePrompt()
 end
 
@@ -43,12 +45,15 @@ local function spawnProp(i, x, y, z)
         MBTLog.Warn('artifact prop failed to load — swap MBT.Artifacts.PropModel:', model)
         return
     end
-    local obj = CreateObject(hash, x, y, z, false, false, false)
+    -- spawn slightly ABOVE the configured z so PlaceObjectOnGroundProperly can
+    -- raycast down onto the real floor (placeholder z values may sit under it).
+    local obj = CreateObject(hash, x, y, z + 1.0, false, false, false)
     SetEntityAsMissionEntity(obj, true, true)
     PlaceObjectOnGroundProperly(obj)
     FreezeEntityPosition(obj, true)
     SetModelAsNoLongerNeeded(hash)
     props[i] = obj
+    if MBT.Debug then MBTLog.Debug('artifact prop spawned', model, 'i', i, 'at', x, y, z, 'handle', obj) end
 end
 
 CreateThread(function()
@@ -61,7 +66,7 @@ CreateThread(function()
         if type(active) == 'table' and #active > 0 then
             -- sync props to the active set
             local want = {}
-            for _, a in ipairs(active) do want[a.i] = a end
+            for _, a in ipairs(active) do if not taken[a.i] then want[a.i] = a end end
             for i, obj in pairs(props) do
                 if not want[i] then
                     if DoesEntityExist(obj) then DeleteEntity(obj) end
@@ -119,6 +124,7 @@ RegisterKeyMapping('mbt_artifact_take',
 
 -- Server confirmed a pickup: remove the prop, flash the lore caption + a soft blip.
 RegisterNetEvent('mbt_backrooms:artifactCollected', function(poolIndex, text, kind)
+    taken[poolIndex] = true -- never respawn this one (state bag may still list it briefly)
     local obj = props[poolIndex]
     if obj and DoesEntityExist(obj) then DeleteEntity(obj) end
     props[poolIndex], current[poolIndex] = nil, nil
@@ -130,9 +136,30 @@ end)
 AddStateBagChangeHandler(STATE_INLEVEL, '', function(bag, _, value)
     local ply = GetPlayerFromStateBagName(bag)
     if ply == 0 or ply ~= PlayerId() then return end
+    -- Any level change resets the local guard (a new scatter may reuse indices).
+    taken = {}
     if not value then clearProps() end
 end)
 
 AddEventHandler('onResourceStop', function(resource)
     if resource == GetCurrentResourceName() then clearProps() end
 end)
+
+-- Debug: dump the artifact pipeline state (server activation -> client props).
+if MBT.Debug then
+    RegisterCommand('brartifacts', function()
+        local active = LocalPlayer.state[STATE_ARTIFACTS]
+        local inLevel = LocalPlayer.state[STATE_INLEVEL]
+        local n = 0
+        for _ in pairs(props) do n = n + 1 end
+        MBTLog.Debug(('brartifacts: inLevel=%s  stateCount=%s  spawnedProps=%d  model=%s')
+            :format(tostring(inLevel), (type(active) == 'table' and #active or 'nil'), n, cfg.PropModel or 'nil'))
+        if type(active) == 'table' then
+            local pc = GetEntityCoords(PlayerPedId())
+            for _, a in ipairs(active) do
+                MBTLog.Debug(('  #%d  dist=%.1f  (%.1f, %.1f, %.1f)  type=%s')
+                    :format(a.i, #(pc - vector3(a.x, a.y, a.z)), a.x, a.y, a.z, a.type or '?'))
+            end
+        end
+    end, false)
+end

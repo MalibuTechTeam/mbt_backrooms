@@ -54,17 +54,11 @@ export default function App() {
   const [log, setLog] = useState<{ text: string; kind?: string } | null>(null)
   const [logKey, setLogKey] = useState(0)
   const [prompt, setPrompt] = useState<PromptData | null>(null)
-  const [promptKey, setPromptKey] = useState(0)
 
   useNuiEvent<AtmoState>('atmosphere:state', (d) => setAtmo(d ?? { active: false }))
 
   useNuiEvent<PromptData>('prompt:set', (d) => {
-    if (d && d.visible) {
-      setPrompt(d)
-      setPromptKey((k) => k + 1) // remount -> replay the resolve animation
-    } else {
-      setPrompt(null)
-    }
+    setPrompt(d && d.visible ? d : null)
   })
 
   useNuiEvent<EntryData>('atmosphere:entry', (d) => {
@@ -124,7 +118,7 @@ export default function App() {
       {dread > 0 && <SanityVignette dread={dread} />}
       {strain > 0 && <StrainVignette level={strain} />}
       {(exitTell > 0 || exitPull > 0) && <ExitWarp tell={exitTell} pull={exitPull} />}
-      {prompt && <InteractPrompt key={promptKey} keyGlyph={prompt.key} label={prompt.label} type={prompt.type} reduceMotion={prompt.reduceMotion} dread={dread} />}
+      <InteractPrompt visible={!!prompt} keyGlyph={prompt?.key ?? 'E'} label={prompt?.label ?? ''} type={prompt?.type ?? 'enter'} reduceMotion={prompt?.reduceMotion} dread={dread} />
       {glitchKey > 0 && <EntryGlitch key={glitchKey} intensity={glitchIntensity} />}
       {blinkKey > 0 && <BlinkOverlay key={blinkKey} durationMs={blinkMs} reduceMotion={atmo.reduceMotion} />}
       {logKey > 0 && log && <LogCaption key={logKey} text={log.text} kind={log.kind} reduceMotion={atmo.reduceMotion} />}

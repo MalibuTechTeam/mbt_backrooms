@@ -83,6 +83,15 @@ if cfg and cfg.Enabled then
         collected[src] = collected[src] or {}
         collected[src][poolIndex] = true
         carried[src] = (carried[src] or 0) + 1
+
+        -- Drop it from the published set so the client despawns it and never
+        -- respawns it (otherwise the prop + its [E] prompt come straight back).
+        local remaining = {}
+        for _, a in ipairs(active) do
+            if a.i ~= poolIndex then remaining[#remaining + 1] = a end
+        end
+        Player(src).state:set(STATE_ARTIFACTS, remaining, true)
+
         TriggerClientEvent('mbt_backrooms:artifactCollected', src, poolIndex, art.text or '', art.type or 'log')
     end)
 

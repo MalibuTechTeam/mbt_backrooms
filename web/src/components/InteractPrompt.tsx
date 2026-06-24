@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react'
 import './InteractPrompt.css'
 
 interface Props {
+  visible: boolean
   keyGlyph: string
   label: string
-  type: string // 'enter' | 'leave'
+  type: string // 'enter' | 'leave' | 'take'
   reduceMotion?: boolean
   dread?: number // 0..1 sanity-loss; high = unstable presentation
 }
@@ -17,23 +18,26 @@ function corrupt(s: string): string {
 }
 
 /**
- * Found-footage interaction prompt (VHS caption). Pure component: NO side
- * effects in render (randomness/corruption lives in an effect) so React's
- * reconciliation — including unmount when the parent hides it — is reliable.
+ * Found-footage interaction prompt (VHS caption). ALWAYS mounted — visibility is
+ * a prop and the component returns null when hidden. This avoids React 19
+ * reconciliation quirks from conditionally mounting/unmounting it among other
+ * keyed siblings (which could leave a "stuck" prompt on hide). Pure render.
  */
-export default function InteractPrompt({ keyGlyph, label, type, reduceMotion, dread = 0 }: Props) {
+export default function InteractPrompt({ visible, keyGlyph, label, type, reduceMotion, dread = 0 }: Props) {
   const base = `[${keyGlyph}] ${label}`
   const [display, setDisplay] = useState(base)
 
   useEffect(() => {
-    if (reduceMotion || Math.random() >= 0.18) {
+    if (!visible || reduceMotion || Math.random() >= 0.18) {
       setDisplay(base)
       return
     }
     setDisplay(`[${keyGlyph}] ${corrupt(label)}`)
     const t = setTimeout(() => setDisplay(base), 110)
     return () => clearTimeout(t)
-  }, [base, keyGlyph, label, reduceMotion])
+  }, [base, keyGlyph, label, reduceMotion, visible])
+
+  if (!visible) return null
 
   const unstable = !reduceMotion && dread >= 0.4
   const cls = ['iprompt',
