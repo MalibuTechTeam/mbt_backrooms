@@ -31,6 +31,7 @@ server_scripts {
   'modules/inventory/server.lua',
   'core/server.lua',
   'modules/sanity/server.lua',
+  'modules/artifacts/server.lua',
   'modules/admin/server.lua'
 }
 
@@ -40,6 +41,7 @@ client_scripts {
   'modules/atmosphere/client.lua',
   'modules/interaction/client.lua',
   'modules/exits/client.lua',
+  'modules/artifacts/client.lua',
   'modules/sanity/client.lua',
   'modules/entities/client.lua',
   'core/client.lua'

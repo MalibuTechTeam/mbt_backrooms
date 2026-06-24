@@ -7,6 +7,7 @@ import SanityVignette from './components/SanityVignette'
 import StrainVignette from './components/StrainVignette'
 import BlinkOverlay from './components/BlinkOverlay'
 import ExitWarp from './components/ExitWarp'
+import LogCaption from './components/LogCaption'
 import InteractPrompt from './components/InteractPrompt'
 import { atmosphereAudio } from './audio/atmosphereAudio'
 
@@ -50,6 +51,8 @@ export default function App() {
   const [exitPull, setExitPull] = useState(0)
   const [blinkKey, setBlinkKey] = useState(0)
   const [blinkMs, setBlinkMs] = useState(220)
+  const [log, setLog] = useState<{ text: string; kind?: string } | null>(null)
+  const [logKey, setLogKey] = useState(0)
   const [prompt, setPrompt] = useState<PromptData | null>(null)
   const [promptKey, setPromptKey] = useState(0)
 
@@ -89,6 +92,13 @@ export default function App() {
     setExitPull(d?.pull ?? 0)
   })
 
+  // Found tapes/logs: flash the recovered lore as a found-footage caption.
+  useNuiEvent<{ text?: string; kind?: string }>('log:show', (d) => {
+    if (!d?.text) return
+    setLog({ text: d.text, kind: d.kind })
+    setLogKey((k) => k + 1) // remount -> replay
+  })
+
   useNuiEvent('atmosphere:stopAll', () => {
     setAtmo({ active: false })
     setDread(0)
@@ -117,6 +127,7 @@ export default function App() {
       {prompt && <InteractPrompt key={promptKey} keyGlyph={prompt.key} label={prompt.label} type={prompt.type} reduceMotion={prompt.reduceMotion} dread={dread} />}
       {glitchKey > 0 && <EntryGlitch key={glitchKey} intensity={glitchIntensity} />}
       {blinkKey > 0 && <BlinkOverlay key={blinkKey} durationMs={blinkMs} reduceMotion={atmo.reduceMotion} />}
+      {logKey > 0 && log && <LogCaption key={logKey} text={log.text} kind={log.kind} reduceMotion={atmo.reduceMotion} />}
     </>
   )
 }

@@ -277,3 +277,40 @@ MBT.SoftPullIn = {
         MaxScale = 1.5,
     },
 }
+
+-------------------------------------------------------------------------------
+-- [ SECTION 7: ARTIFACTS — found tapes / logs ] --
+-------------------------------------------------------------------------------
+
+-- The narrative spine (faithful to the film): scattered tapes/logs left by those
+-- who came before. You enter to DOCUMENT the impossible / recover them. Each visit
+-- the server scatters a random subset of a per-level pool as in-world props; pick
+-- one up with [E] and its text flashes as a found-footage caption — the reward is
+-- LORE, not loot. Carry them to the surface to "recover" them.
+-- FAKE placeholder coords until Iakko's map — grab real ones with /brhere. Pool
+-- index matches the level (MBT.Coords). `text` is the found-footage caption shown.
+MBT.Artifacts = {
+    Enabled       = true,
+    SpawnPerVisit = 2,                   -- how many from the pool spawn each visit
+    PickupRange   = 1.8,
+    PropModel     = 'prop_notepad_01',   -- in-world prop (swap if it doesn't spawn)
+    Pool = {
+        [1] = {
+            { coords = vector3(1028.0, 803.0, 25.0), type = 'tape', text = "TAPE 04 — \"the lights hum in B-flat. counted 1,400 before i stopped.\"" },
+            { coords = vector3(1021.0, 797.0, 25.0), type = 'log',  text = "NOTE — \"don't go back the way you came. it isn't there anymore.\"" },
+            { coords = vector3(1034.0, 808.0, 25.0), type = 'tape', text = "TAPE 09 — \"found a door. almond water on the other side. i think.\"" },
+        },
+        [2] = {
+            { coords = vector3(1782.0, -271.0, 19.8), type = 'log',  text = "MEMO — \"the walls are warm here. that means something is awake.\"" },
+            { coords = vector3(1776.0, -277.0, 19.8), type = 'tape', text = "TAPE 12 — \"i keep hearing my own footsteps a half-second late.\"" },
+        },
+        [3] = {
+            { coords = vector3(358.0, 5532.0, 13.5), type = 'tape', text = "TAPE 02 — \"if you're watching this, i never made it back. keep moving.\"" },
+            { coords = vector3(353.0, 5527.0, 13.5), type = 'log',  text = "NOTE — \"the exits move. learn the hum, not the map.\"" },
+        },
+        [4] = {
+            { coords = vector3(-2283.0, 1434.0, 81.0), type = 'log',  text = "PAGE 7 — \"day 19. the smiling one only moves when i blink.\"" },
+            { coords = vector3(-2288.0, 1429.0, 81.0), type = 'tape', text = "TAPE 17 — \"there's a pool. it's the only warm sound left.\"" },
+        },
+    },
+}
