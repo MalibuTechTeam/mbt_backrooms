@@ -146,8 +146,9 @@ MBT.Atmosphere = {
             select = 'random',
             variants = {
                 { modifier = 'scanline_cam_cheap',  strength = 1.0 },
-                { modifier = 'NG_blackout',          strength = 0.4 },
-                { modifier = 'prologue_ending_fog',  strength = 0.6 },
+                { modifier = 'prologue_ending_fog', strength = 0.6 },
+                -- (NG_blackout removed — it's a near-total blackout, not a mood tint.
+                --  Level darkness is now the tunable NUI gloom: MBT.Atmosphere.Darkness.)
             },
         },
         LightFlicker = { enabled = true,  source = 'native', minDelayMs = 3000, maxDelayMs = 10000, burstMinMs = 60, burstMaxMs = 400 },
