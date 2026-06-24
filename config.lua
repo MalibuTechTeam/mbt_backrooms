@@ -54,14 +54,16 @@ MBT.RandomExitPoint = {
 }
 
 -- Interaction points placed around the map.
---   Type = "Enter" -> always teleports into a random backroom.
---   Type = "Exit"  -> rolls MBT.ExitRules (weighted): another backroom or a
---                     surface exit point.
+--   Type = "Enter" -> always teleports into a random backroom (deliberate [E] door).
+--   Type = "Exit"  -> manual [E] exit door (rolls MBT.ExitRules). OPTIONAL / LEGACY:
+--     in-level exits are now handled by MBT.CuratedExits (sensed + soft pull-in, no
+--     marker). The four real exit-door coords are kept commented below — uncomment
+--     any of them if you want explicit [E] exit doors back.
 MBT.BackRooms = {
-    { Type = "Exit",  Coords = vector3(310.52, 5522.78, 14.51),   Range = 1.5 },
-    { Type = "Exit",  Coords = vector3(1779.16, -260.81, 20.86),  Range = 1.5 },
-    { Type = "Exit",  Coords = vector3(-2301.72, 1416.78, 81.92), Range = 1.5 },
-    { Type = "Exit",  Coords = vector3(1017.94, 800.23, 25.92),   Range = 1.5 },
+    -- { Type = "Exit",  Coords = vector3(310.52, 5522.78, 14.51),   Range = 1.5 }, -- lv03 door (optional)
+    -- { Type = "Exit",  Coords = vector3(1779.16, -260.81, 20.86),  Range = 1.5 }, -- lv02 door (optional)
+    -- { Type = "Exit",  Coords = vector3(-2301.72, 1416.78, 81.92), Range = 1.5 }, -- lv04 door (optional)
+    -- { Type = "Exit",  Coords = vector3(1017.94, 800.23, 25.92),   Range = 1.5 }, -- lv01 door (optional)
     { Type = "Enter", Coords = vector3(1112.08, 2188.65, 46.39),  Range = 2.0 },
     { Type = "Enter", Coords = vector3(-220.38, 3649.13, 51.75),  Range = 2.0 },
     { Type = "Enter", Coords = vector3(-440.85, 1598.89, 358.47), Range = 2.0 },
