@@ -286,10 +286,23 @@ RegisterNetEvent('mbt_backrooms:teleportDone', function(token)
     end
 end)
 
+-- A freshly (re)connected client reconciles to a clean slate. A relog must never
+-- inherit stale "inside a level" state — otherwise the replicated inLevel re-fires
+-- the atmosphere and you wake up tinted/locked while actually on the surface.
+RegisterNetEvent('mbt_backrooms:clientReady', function()
+    Core.ClearState(source)
+end)
+
+-- Death inside a level (option A): the death spits you out. Clear state so GTA
+-- respawns you on the surface clean, not stuck with the level's effects.
+RegisterNetEvent('mbt_backrooms:exitOnDeath', function()
+    local src = source
+    if Player(src).state[STATE_INLEVEL] then Core.ClearState(src) end
+end)
+
 AddEventHandler('playerDropped', function()
     local src = source
-    pendingTeleport[src] = nil
-    zoneState[src] = nil
+    Core.ClearState(src)        -- also resets the state bag, so a reused slot can't inherit "inside"
     Utils.ClearRateLimit(src)
 end)
 

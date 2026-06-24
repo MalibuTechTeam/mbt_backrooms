@@ -150,6 +150,27 @@ RegisterNetEvent('mbt_backrooms:doTeleport', function(coords, token)
 end)
 
 -------------------------------------------------------------------------------
+-- Lifecycle: reconcile on (re)connect and on death, so a relog or a death never
+-- leaves the backrooms atmosphere applied while you're actually on the surface.
+-- The server clears the state; the inLevel-change handlers tear down the effects.
+-------------------------------------------------------------------------------
+CreateThread(function()
+    while not NetworkIsPlayerActive(PlayerId()) or not DoesEntityExist(PlayerPedId()) do Wait(250) end
+    Wait(500)
+    TriggerServerEvent('mbt_backrooms:clientReady') -- clean slate on connect
+
+    local wasDead = false
+    while true do
+        local dead = IsEntityDead(PlayerPedId())
+        if dead and not wasDead and LocalPlayer.state['mbt_backrooms:inLevel'] then
+            TriggerServerEvent('mbt_backrooms:exitOnDeath') -- died inside -> server pulls us out (option A)
+        end
+        wasDead = dead
+        Wait(500)
+    end
+end)
+
+-------------------------------------------------------------------------------
 -- TEMP debug helpers (remove before release). Fire requests directly so F1 can
 -- be tested from the chat box (the F8 console can't run raw Lua / table args).
 --   /brfall          — simulate a fall-through (entry, reason 'fall').
