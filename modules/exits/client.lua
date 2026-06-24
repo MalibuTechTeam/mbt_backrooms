@@ -15,6 +15,51 @@ local function sendWarp(tell, pull)
     SendNUIMessage({ action = 'exit:warp', data = { tell = tell, pull = pull } })
 end
 
+-- Pull-in particle: a localized paper-swirl that appears ONLY once the pull is
+-- past StartAt, scaling up with progress, then hard-cut on teleport/cancel. At
+-- rest the exit shows nothing — it stays unmarked. "Room losing pressure", not a
+-- portal (Codex). core/env_dust_devil_urban_sma lifts paper litter.
+local Ptfx = MBT.SoftPullIn and MBT.SoftPullIn.Ptfx
+local pullPtfx, ptfxReady = nil, false
+
+local function ensurePtfxAsset()
+    if ptfxReady then return true end
+    if not (Ptfx and Ptfx.Enabled) then return false end
+    RequestNamedPtfxAsset(Ptfx.Dict)
+    local t = 1500
+    while not HasNamedPtfxAssetLoaded(Ptfx.Dict) and t > 0 do Wait(50); t = t - 50 end
+    ptfxReady = HasNamedPtfxAssetLoaded(Ptfx.Dict)
+    return ptfxReady
+end
+
+local function stopPullPtfx()
+    if pullPtfx then
+        if DoesParticleFxLoopedExist(pullPtfx) then StopParticleFxLooped(pullPtfx, false) end
+        pullPtfx = nil
+    end
+end
+
+-- Drive the swirl from pull progress (0..1) at the exit coords.
+local function updatePullPtfx(progress, x, y, z)
+    if not (Ptfx and Ptfx.Enabled) then return end
+    local startAt = Ptfx.StartAt or 0.35
+    if progress < startAt then
+        stopPullPtfx()
+        return
+    end
+    if not pullPtfx then
+        if not ensurePtfxAsset() then return end
+        UseParticleFxAsset(Ptfx.Dict)
+        pullPtfx = StartParticleFxLoopedAtCoord(Ptfx.Name, x, y, z, 0.0, 0.0, 0.0,
+            Ptfx.MinScale or 0.2, false, false, false, false)
+    end
+    if pullPtfx and DoesParticleFxLoopedExist(pullPtfx) then
+        local f = (progress - startAt) / math.max(0.001, 1.0 - startAt)
+        local minS, maxS = Ptfx.MinScale or 0.2, Ptfx.MaxScale or 0.8
+        SetParticleFxLoopedScale(pullPtfx, minS + (maxS - minS) * f)
+    end
+end
+
 CreateThread(function()
     if not ce or not ce.Enabled then return end
 
@@ -31,10 +76,10 @@ CreateThread(function()
 
         if type(exits) == 'table' and #exits > 0 and not isLocked() then
             local pc = GetEntityCoords(PlayerPedId())
-            local bestIdx, bestDist, bestR = nil, 1e9, 1.6
+            local bestIdx, bestDist, bestR, bx, by, bz = nil, 1e9, 1.6, 0.0, 0.0, 0.0
             for _, e in ipairs(exits) do
                 local d = #(pc - vector3(e.x, e.y, e.z))
-                if d < bestDist then bestDist, bestIdx, bestR = d, e.i, (e.r or 1.6) end
+                if d < bestDist then bestDist, bestIdx, bestR, bx, by, bz = d, e.i, (e.r or 1.6), e.x, e.y, e.z end
             end
 
             if bestDist <= tellRange then
@@ -66,13 +111,16 @@ CreateThread(function()
                     sendWarp(tell, pull)
                     lastTell = tell
                 end
+                updatePullPtfx(pull, bx, by, bz)
             elseif not cleared then
                 cleared, insideSince, insideIdx, lastTell = true, nil, nil, -1.0
                 sendWarp(0.0, 0.0)
+                stopPullPtfx()
             end
         elseif not cleared then
             cleared, insideSince, insideIdx, lastTell = true, nil, nil, -1.0
             sendWarp(0.0, 0.0)
+            stopPullPtfx()
         end
 
         Wait(sleep)
@@ -83,10 +131,16 @@ end)
 AddStateBagChangeHandler('mbt_backrooms:inLevel', '', function(bag, _, value)
     local ply = GetPlayerFromStateBagName(bag)
     if ply == 0 or ply ~= PlayerId() then return end
-    -- Any inLevel change = a teleport just landed (entered/left). Drop the latch
-    -- and clear the overlay so a held pull never bleeds into the next room.
+    -- Any inLevel change = a teleport just landed (entered/left). Drop the latch,
+    -- hard-cut the swirl, and clear the overlay so neither bleeds into the next room.
     pullHoldUntil = 0
+    stopPullPtfx()
     SendNUIMessage({ action = 'exit:warp', data = { tell = 0, pull = 0 } })
+end)
+
+-- Never leave an orphaned particle if the resource stops mid pull-in.
+AddEventHandler('onResourceStop', function(resource)
+    if resource == GetCurrentResourceName() then stopPullPtfx() end
 end)
 
 -- Debug: list this visit's active curated exits + your distance to each (for

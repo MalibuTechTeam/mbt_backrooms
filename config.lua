@@ -264,4 +264,16 @@ MBT.CuratedExits = {
 MBT.SoftPullIn = {
     Enabled    = true,
     DurationMs = 2200,
+    -- A localized "the room is losing pressure" swirl during the pull-in ONLY —
+    -- never at rest, so the exit stays unmarked. Paper/litter lifts and spins,
+    -- growing as you're pulled through, then hard-cuts on the teleport. Staged so
+    -- nothing shows until the player has already committed (StartAt).
+    Ptfx = {
+        Enabled  = true,
+        Dict     = 'core',
+        Name     = 'env_dust_devil_urban_sma', -- small urban dust devil (lifts paper litter)
+        StartAt  = 0.35, -- pull progress (0..1) before any particle appears
+        MinScale = 0.2,
+        MaxScale = 0.8,
+    },
 }

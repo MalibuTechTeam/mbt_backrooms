@@ -198,4 +198,38 @@ if MBT.Debug then
         SetTimecycleModifierStrength(strength)
         Utils.MbtDebugger('timecycle:', mod, 'strength', strength)
     end, false)
+
+    -- Preview a looped particle FX at your feet (to pick atmosphere/exit ptfx).
+    --   /brptfx <dict> <fxname> [scale]   e.g. /brptfx core ent_amb_smoke_foundry 1.0
+    --   /brptfx off                       stop the preview
+    local previewPtfx = nil
+    RegisterCommand('brptfx', function(_, args)
+        if previewPtfx and DoesParticleFxLoopedExist(previewPtfx) then
+            StopParticleFxLooped(previewPtfx, false)
+        end
+        previewPtfx = nil
+        local dict = args[1]
+        if not dict or dict == 'off' then Utils.MbtDebugger('ptfx: stopped'); return end
+        local fx = args[2]
+        if not fx then Utils.MbtDebugger('ptfx: usage /brptfx <dict> <fxname> [scale]'); return end
+        local scale = tonumber(args[3]) or 1.0
+
+        RequestNamedPtfxAsset(dict)
+        local t = 3000
+        while not HasNamedPtfxAssetLoaded(dict) and t > 0 do Wait(50); t = t - 50 end
+        if not HasNamedPtfxAssetLoaded(dict) then
+            Utils.MbtDebugger('ptfx: dict failed to load (wrong name?)', dict)
+            return
+        end
+        UseParticleFxAsset(dict)
+        local ped = PlayerPedId()
+        local fwd = GetEntityForwardVector(ped)
+        local c = GetEntityCoords(ped) + fwd * 2.0 -- 2m ahead so it's not under your feet
+        previewPtfx = StartParticleFxLoopedAtCoord(fx, c.x, c.y, c.z + 0.5, 0.0, 0.0, 0.0, scale, false, false, false, false)
+        if not previewPtfx or previewPtfx == 0 or previewPtfx == -1 then
+            Utils.MbtDebugger('ptfx: FAILED to start — effect name wrong for dict?', dict, fx, '(handle', previewPtfx, ')')
+        else
+            Utils.MbtDebugger('ptfx OK:', dict, fx, 'scale', scale, '-> 2m ahead, chest height, handle', previewPtfx)
+        end
+    end, false)
 end
