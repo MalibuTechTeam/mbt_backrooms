@@ -62,6 +62,10 @@ if cfg.Enabled then
                 if lvl then
                     local decay = (cfg.DecayPerMinute or 8) * perMinToTick
                     if (occupancy[lvl] or 1) <= 1 then decay = decay * (cfg.IsolationMult or 1.5) end
+                    -- torch OFF (or never set) = dark = faster erosion (F4 light tension)
+                    if MBT.Light and MBT.Light.Enabled and not Player(src).state['mbt_backrooms:torch'] then
+                        decay = decay * (MBT.Light.DarkDecayMult or 1.0)
+                    end
                     set(src, get(src) - decay)
                 else
                     local cur = get(src)

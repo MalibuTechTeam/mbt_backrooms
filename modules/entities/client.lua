@@ -267,9 +267,14 @@ CreateThread(function()
         local sleep = 4000
         if LocalPlayer.state['mbt_backrooms:inLevel'] and not activePed then
             local sanity = LocalPlayer.state['mbt_backrooms:sanity'] or 100
+            -- "Light attracts": torch ON raises the glimpse chance (F4 tension).
+            local chance = cfg.Chance or 50
+            if MBT.Light and MBT.Light.Enabled and LocalPlayer.state['mbt_backrooms:torch'] then
+                chance = chance * (MBT.Light.LightEntityMult or 1.0)
+            end
             if sanity < (cfg.MinSanityGate or 50)
                 and (GetGameTimer() - lastGlimpse) > (cfg.CooldownSec or 90) * 1000
-                and math.random(1, 100) <= (cfg.Chance or 50) then
+                and math.random(1, 100) <= chance then
                 lastGlimpse = GetGameTimer()
                 spawnGlimpse()
             end

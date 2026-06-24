@@ -344,3 +344,27 @@ MBT.AlmondWater = {
         },
     },
 }
+
+-------------------------------------------------------------------------------
+-- [ SECTION 9: LIGHT — torch + darkness pressure ] --
+-------------------------------------------------------------------------------
+
+-- A torch you toggle inside a level. The tension (no dominant strategy):
+--   torch OFF -> darker + sanity decays faster (DarkDecayMult), but the entity is
+--                LESS likely (it's drawn to light).
+--   torch ON  -> you can see, normal decay, BUT the entity is MORE likely
+--                (LightEntityMult) — "the lights attract it".
+-- It does NOT touch the timecycle (that's the atmosphere's job) — the torch is a
+-- separate light source + a gameplay state ('mbt_backrooms:torch').
+MBT.Light = {
+    Enabled         = true,
+    Key             = 'F',          -- toggle key
+    Mode            = 'spotlight',  -- 'spotlight' (drawn cone — drop-in safe) | 'weapon' (WEAPON_FLASHLIGHT: real light, but takes the weapon slot → may clash with RP weapon systems)
+    StartOn         = false,        -- torch on at level entry?
+    DarkDecayMult   = 1.5,          -- sanity decay ×this while torch OFF
+    LightEntityMult = 1.6,          -- entity glimpse chance ×this while torch ON
+    -- 'spotlight' mode tuning (drawn cone from the camera)
+    Range           = 25.0,
+    Brightness      = 4.0,
+    Radius          = 7.0,
+}

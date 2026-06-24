@@ -8,6 +8,7 @@ Locales['en'] = {
     ["keymapping_label"]    = "Backrooms: pass through",
     ["keymapping_take"]     = "Backrooms: take recording",
     ["keymapping_drink"]    = "Backrooms: drink Almond Water",
+    ["keymapping_torch"]    = "Backrooms: toggle torch",
     ["notify_entered"]      = "You no-clipped out of reality...",
     ["notify_recovered"]    = "Recovered %d recording(s) from the Backrooms",
 }
