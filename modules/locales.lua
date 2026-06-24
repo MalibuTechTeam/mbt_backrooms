@@ -4,14 +4,16 @@ Locales = Locales or {}
 local function setLocale(lang)
     lang = lang or 'en'
     if not Locales[lang] then
-        print(("^3[%s] Warning: Language '^5%s^3' not found in locales/. Falling back to 'en'.^0")
-            :format(GetCurrentResourceName(), tostring(lang)))
+        -- MBTLog isn't loaded yet at the initial (load-time) call (this file loads
+        -- before logger.lua), so fall back to a raw print there; at runtime it routes
+        -- through the logger like everything else.
+        local msg = ("Language '%s' not found in locales/ — falling back to 'en'"):format(tostring(lang))
+        if MBTLog then MBTLog.Warn(msg)
+        else print(("^3[%s] Warning: %s^0"):format(GetCurrentResourceName(), msg)) end
         MBT.Locale = Locales['en'] or (next(Locales) ~= nil and Locales[next(Locales)]) or {}
     else
         MBT.Locale = Locales[lang]
-        if MBT.Debug then
-            print(("[%s] | Language set to ^5%s^0"):format(GetCurrentResourceName(), tostring(lang)))
-        end
+        if MBTLog then MBTLog.Debug('Language set to', lang) end -- self-gated by MBT.Debug + proper badge
     end
 end
 
