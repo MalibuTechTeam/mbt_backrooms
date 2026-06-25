@@ -36,6 +36,12 @@ interface PromptData {
   type: string
   reduceMotion?: boolean
 }
+interface ArchiveData {
+  tapes: { id: string; type?: string; text: string }[]
+  notes?: { category: string; text: string }[]
+  confidence?: Record<string, number>
+  research?: boolean
+}
 
 // Browser dev preview: atmosphere on + a low-sanity vignette.
 debugData<AtmoState>([
@@ -56,7 +62,7 @@ export default function App() {
   const [blinkMs, setBlinkMs] = useState(220)
   const [log, setLog] = useState<{ text: string; kind?: string } | null>(null)
   const [logKey, setLogKey] = useState(0)
-  const [archive, setArchive] = useState<{ tapes: { id: string; type?: string; text: string }[] } | null>(null)
+  const [archive, setArchive] = useState<ArchiveData | null>(null)
   const [prompt, setPrompt] = useState<PromptData | null>(null)
 
   useNuiEvent<AtmoState>('atmosphere:state', (d) => setAtmo(d ?? { active: false }))
@@ -98,8 +104,8 @@ export default function App() {
   })
 
   // Archive terminal: open/close the interactive recovered-tapes panel.
-  useNuiEvent<{ tapes?: { id: string; type?: string; text: string }[] }>('archive:open', (d) =>
-    setArchive({ tapes: d?.tapes ?? [] }),
+  useNuiEvent<ArchiveData>('archive:open', (d) =>
+    setArchive({ tapes: d?.tapes ?? [], notes: d?.notes ?? [], confidence: d?.confidence ?? {}, research: !!d?.research }),
   )
   useNuiEvent('archive:close', () => setArchive(null))
 
@@ -133,7 +139,7 @@ export default function App() {
       {glitchKey > 0 && <EntryGlitch key={glitchKey} intensity={glitchIntensity} />}
       {blinkKey > 0 && <BlinkOverlay key={blinkKey} durationMs={blinkMs} reduceMotion={atmo.reduceMotion} />}
       {logKey > 0 && log && <LogCaption key={logKey} text={log.text} kind={log.kind} reduceMotion={atmo.reduceMotion} />}
-      {archive && <Archive tapes={archive.tapes} />}
+      {archive && <Archive tapes={archive.tapes} notes={archive.notes} confidence={archive.confidence} research={archive.research} />}
     </>
   )
 }

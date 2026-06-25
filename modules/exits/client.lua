@@ -79,19 +79,26 @@ CreateThread(function()
 
         if type(exits) == 'table' and #exits > 0 and not isLocked() then
             local pc = GetEntityCoords(PlayerPedId())
+            -- Archive exit "literacy": confidence makes the tell start earlier
+            -- (rangeBonus) and read clearer (tellMult). Absent => no change.
+            local lit = LocalPlayer.state['mbt_backrooms:exitLiteracy']
+            local effRange = tellRange + ((lit and lit.rangeBonus) or 0.0)
+            local tellMult = (lit and lit.tellMult) or 1.0
+
             local bestIdx, bestDist, bestR, bx, by, bz = nil, 1e9, 1.6, 0.0, 0.0, 0.0
             for _, e in ipairs(exits) do
                 local d = #(pc - vector3(e.x, e.y, e.z))
                 if d < bestDist then bestDist, bestIdx, bestR, bx, by, bz = d, e.i, (e.r or 1.6), e.x, e.y, e.z end
             end
 
-            if bestDist <= tellRange then
+            if bestDist <= effRange then
                 cleared = false
                 sleep = 120
                 -- clamp the radius in the normalisation so a misconfigured large
                 -- radius can't collapse the ramp into a binary tell.
-                local tell = (tellRange - bestDist) / math.max(0.1, tellRange - math.min(bestR, tellRange * 0.5))
+                local tell = (effRange - bestDist) / math.max(0.1, effRange - math.min(bestR, effRange * 0.5))
                 if tell < 0 then tell = 0 elseif tell > 1 then tell = 1 end
+                if tellMult ~= 1.0 then tell = math.min(1.0, tell * tellMult) end
 
                 local pull, now = 0.0, GetGameTimer()
                 if now < pullHoldUntil then

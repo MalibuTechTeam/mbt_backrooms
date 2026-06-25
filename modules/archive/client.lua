@@ -5,13 +5,13 @@
 local cfg = MBT.Archive
 local aCfg = MBT.Artifacts
 
--- id -> { type, text } lookup, built from the artifact pool (the text lives
--- client-side in config, so the server only has to send the recovered ids).
+-- id -> { type, text, category } lookup, built from the artifact pool (the text
+-- lives client-side in config, so the server only has to send the recovered ids).
 local byId = {}
 if aCfg and aCfg.Pool then
     for _, level in pairs(aCfg.Pool) do
         for _, a in ipairs(level) do
-            if a.id then byId[a.id] = { type = a.type or 'log', text = a.text or '' } end
+            if a.id then byId[a.id] = { type = a.type or 'log', text = a.text or '', category = a.category } end
         end
     end
 end
@@ -54,19 +54,40 @@ local function closeArchive()
     SendNUIMessage({ action = 'archive:close' })
 end
 
--- Server replies with the recovered ids -> map to text and open the NUI panel.
+-- Server replies with the recovered ids -> map to text, derive per-category
+-- confidence + unlocked field notes (Research Mode), and open the NUI panel.
 RegisterNetEvent('mbt_backrooms:archiveData', function(ids)
-    local tapes = {}
+    local tapes, confidence = {}, {}
     if type(ids) == 'table' then
         for _, id in ipairs(ids) do
             local e = byId[id]
-            if e then tapes[#tapes + 1] = { id = id, type = e.type, text = e.text } end
+            if e then
+                tapes[#tapes + 1] = { id = id, type = e.type, text = e.text }
+                if e.category then confidence[e.category] = (confidence[e.category] or 0) + 1 end
+            end
         end
     end
+
+    -- Unlock the diegetic notes whose threshold the player's per-category
+    -- confidence has reached (text-only; computed from config, never on HUD).
+    local notes = {}
+    local rm = MBT.Archive and MBT.Archive.ResearchMode
+    local research = (rm and rm.Enabled) or false
+    if research and rm.Hints then
+        for cat, hints in pairs(rm.Hints) do
+            local c = confidence[cat] or 0
+            for _, h in ipairs(hints) do
+                if c >= (h.at or 1) then notes[#notes + 1] = { category = cat, text = h.text } end
+            end
+        end
+    end
+
     hidePrompt()
     open = true
     SetNuiFocus(true, true)
-    SendNUIMessage({ action = 'archive:open', data = { tapes = tapes } })
+    SendNUIMessage({ action = 'archive:open', data = {
+        tapes = tapes, notes = notes, confidence = confidence, research = research,
+    } })
 end)
 
 RegisterNUICallback('archiveClose', function(_, cb)

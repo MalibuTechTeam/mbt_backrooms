@@ -6,9 +6,41 @@
 local cfg = MBT.Artifacts
 local STATE_INLEVEL   = 'mbt_backrooms:inLevel'
 local STATE_ARTIFACTS = 'mbt_backrooms:artifacts'
+local STATE_LITERACY  = 'mbt_backrooms:exitLiteracy'
 
 local carrying  = {} -- carrying[src]  = { [id] = true } collected this run (kept across levels)
 local recovered = {} -- recovered[src] = { [id] = true } — the Archive (recovered on the surface)
+
+-- id -> category, used only to resolve the exits "sensory literacy" tier server-side
+-- (the archive's text field-notes are computed client-side from config).
+local idCat = {}
+if cfg and cfg.Pool then
+    for _, level in pairs(cfg.Pool) do
+        for _, a in ipairs(level) do
+            if a.id and a.category then idCat[a.id] = a.category end
+        end
+    end
+end
+local rm  = MBT.Archive and MBT.Archive.ResearchMode
+local lit = rm and rm.Enabled and rm.ExitLiteracy and rm.ExitLiteracy.Enabled and rm.ExitLiteracy
+
+-- Publish the player's exits literacy from their recovered set: count distinct
+-- recovered `exits` tapes, pick the highest threshold <= that, push its
+-- {rangeBonus, tellMult} so the exits module can scale its tell (Research Mode).
+local function updateExitLiteracy(src)
+    if not lit then return end
+    local rec, count = recovered[src], 0
+    if type(rec) == 'table' then
+        for id in pairs(rec) do if idCat[id] == 'exits' then count = count + 1 end end
+    end
+    local best
+    for threshold, v in pairs(lit) do
+        if type(threshold) == 'number' and count >= threshold and (not best or threshold > best.t) then
+            best = { t = threshold, v = v }
+        end
+    end
+    Player(src).state:set(STATE_LITERACY, best and best.v or nil, true)
+end
 
 local function clearState(src)
     Player(src).state:set(STATE_ARTIFACTS, {}, true)
@@ -53,6 +85,7 @@ if cfg and cfg.Enabled then
                         or 'Recovered %d recording(s) from the Backrooms'
                     Bridge.Notify(src, msg:format(n))
                 end
+                updateExitLiteracy(src)
             end
             carrying[src] = nil
             clearState(src)
