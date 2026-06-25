@@ -38,7 +38,6 @@ server_scripts {
 
 client_scripts {
   'modules/utils/client.lua',
-  'modules/bridge/custom/client.lua',
   'modules/atmosphere/client.lua',
   'modules/interaction/client.lua',
   'modules/exits/client.lua',
@@ -46,6 +45,7 @@ client_scripts {
   'modules/almondwater/client.lua',
   'modules/light/client.lua',
   'modules/archive/client.lua',
+  'modules/hud/client.lua',
   'modules/sanity/client.lua',
   'modules/entities/client.lua',
   'core/client.lua'

@@ -13,8 +13,8 @@ end
 local function notify(src, msg)
     if src == 0 then
         print('[mbt_backrooms] ' .. msg)
-    elseif Bridge and Bridge.Notify then
-        Bridge.Notify(src, msg)
+    elseif Utils.Notify then
+        Utils.Notify(src, msg)
     else
         TriggerClientEvent('chat:addMessage', src, { args = { 'mbt_backrooms', msg } })
     end

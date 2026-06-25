@@ -118,10 +118,13 @@ local function playDrink(cb)
         while not HasModelLoaded(h) and t > 0 do Wait(20); t = t - 20 end
         if HasModelLoaded(h) then
             local c = GetEntityCoords(ped)
-            prop = CreateObject(h, c.x, c.y, c.z, true, true, false)
-            local bone = GetPedBoneIndex(ped, 57005) -- SKEL_R_Hand
+            -- Match ox_inventory exactly so its tuned pos/rot read correctly: default
+            -- bone 60309 (IK_L_Hand) + the same attach flags/rotation order as
+            -- ox_lib's progress.lua (rotOrder 0). Override via HeldProp.bone/rotOrder.
+            prop = CreateObject(h, c.x, c.y, c.z, false, false, false)
+            local bone = GetPedBoneIndex(ped, hp.bone or 60309)
             AttachEntityToEntity(prop, ped, bone, hp.pos.x, hp.pos.y, hp.pos.z,
-                hp.rot.x, hp.rot.y, hp.rot.z, false, false, false, false, 2, true)
+                hp.rot.x, hp.rot.y, hp.rot.z, true, true, false, true, hp.rotOrder or 0, true)
             SetModelAsNoLongerNeeded(h)
         end
     end
@@ -175,3 +178,38 @@ end)
 AddEventHandler('onResourceStop', function(resource)
     if resource == GetCurrentResourceName() then clearProps() end
 end)
+
+-- Debug: pale marker on each active bottle (within 60m) + a list command, to spot
+-- bottles that landed in the void / behind geometry while placing the pool.
+if MBT.Debug then
+    RegisterCommand('bralmond', function()
+        local active = LocalPlayer.state[STATE_WATER]
+        if type(active) ~= 'table' or #active == 0 then
+            MBTLog.Debug('bralmond: no active bottles (must be inside a level)')
+            return
+        end
+        local pc = GetEntityCoords(PlayerPedId())
+        for _, a in ipairs(active) do
+            MBTLog.Debug(('bralmond: #%d  dist=%.1f  (%.1f, %.1f, %.1f)')
+                :format(a.i, #(pc - vector3(a.x, a.y, a.z)), a.x, a.y, a.z))
+        end
+    end, false)
+
+    CreateThread(function()
+        while true do
+            local sleep = 1000
+            local active = LocalPlayer.state[STATE_INLEVEL] and LocalPlayer.state[STATE_WATER]
+            if type(active) == 'table' and #active > 0 then
+                local pc = GetEntityCoords(PlayerPedId())
+                for _, a in ipairs(active) do
+                    if #(pc - vector3(a.x, a.y, a.z)) < 60.0 then
+                        sleep = 0
+                        DrawMarker(1, a.x, a.y, a.z - 0.95, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                            0.6, 0.6, 2.0, 200, 230, 180, 120, false, false, 2, false, nil, nil, false)
+                    end
+                end
+            end
+            Wait(sleep)
+        end
+    end)
+end

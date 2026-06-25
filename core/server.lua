@@ -275,9 +275,9 @@ RegisterNetEvent('mbt_backrooms:teleportDone', function(token)
         state:set(STATE_INLEVEL, p.level, true)
         state:set(STATE_ENTRY, GetGameTimer(), true)
         activateExits(src, p.level) -- fresh curated exits for this visit
-        -- Debug-only: exercise the framework bridge notification routing.
-        if MBT.Debug and Bridge and Bridge.Notify then
-            Bridge.Notify(src, (MBT.Locale and MBT.Locale.notify_entered) or 'Entered the Backrooms')
+        -- Debug-only: exercise the notification path.
+        if MBT.Debug then
+            Utils.Notify(src, (MBT.Locale and MBT.Locale.notify_entered) or 'Entered the Backrooms')
         end
     else
         state:set(STATE_INLEVEL, false, true)

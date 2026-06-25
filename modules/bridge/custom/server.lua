@@ -10,9 +10,4 @@ end
 Bridge = Bridge or {}
 Bridge.Framework = 'custom'
 
--- Standalone notification: route to our own client handler (native GTA feed).
-function Bridge.Notify(src, msg)
-    TriggerClientEvent('mbt_backrooms:notify', src, msg)
-end
-
 Utils.MbtDebugger('bridge: standalone (custom) loaded')

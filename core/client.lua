@@ -198,10 +198,13 @@ if MBT.Debug then
         TriggerServerEvent('mbt_backrooms:requestExit', { point = point })
     end, false)
 
-    -- Print the player's current coords (to place MBT.NoClipZones).
+    -- Print the player's current coords + a paste-ready entry (to place exits,
+    -- pickups, terminals or NoClipZones). Stand exactly where you want the point.
     RegisterCommand('brhere', function()
-        local c = GetEntityCoords(PlayerPedId())
-        Utils.MbtDebugger('brhere:', ('vector3(%.2f, %.2f, %.2f)'):format(c.x, c.y, c.z))
+        local ped = PlayerPedId()
+        local c = GetEntityCoords(ped)
+        Utils.MbtDebugger('brhere:', ('vector3(%.2f, %.2f, %.2f)  heading=%.1f'):format(c.x, c.y, c.z, GetEntityHeading(ped)))
+        Utils.MbtDebugger('brhere exit:', ("{ coords = vector3(%.2f, %.2f, %.2f), radius = 1.6, dest = 'surface' },"):format(c.x, c.y, c.z))
     end, false)
 
     -- Preview a timecycle modifier live (to pick a good one for the atmosphere).

@@ -10,6 +10,7 @@ import BlinkOverlay from './components/BlinkOverlay'
 import ExitWarp from './components/ExitWarp'
 import LogCaption from './components/LogCaption'
 import Archive from './components/Archive'
+import LevelHud from './components/LevelHud'
 import InteractPrompt from './components/InteractPrompt'
 import { atmosphereAudio } from './audio/atmosphereAudio'
 
@@ -42,6 +43,14 @@ interface ArchiveData {
   confidence?: Record<string, number>
   research?: boolean
 }
+interface HudState {
+  inLevel: boolean
+  torch: boolean
+  torchHint: boolean
+  showSanity: boolean
+  torchKey: string
+  torchLabel: string
+}
 
 // Browser dev preview: atmosphere on + a low-sanity vignette.
 debugData<AtmoState>([
@@ -63,6 +72,7 @@ export default function App() {
   const [log, setLog] = useState<{ text: string; kind?: string } | null>(null)
   const [logKey, setLogKey] = useState(0)
   const [archive, setArchive] = useState<ArchiveData | null>(null)
+  const [hud, setHud] = useState<HudState | null>(null)
   const [prompt, setPrompt] = useState<PromptData | null>(null)
 
   useNuiEvent<AtmoState>('atmosphere:state', (d) => setAtmo(d ?? { active: false }))
@@ -109,6 +119,10 @@ export default function App() {
   )
   useNuiEvent('archive:close', () => setArchive(null))
 
+  // In-level HUD: torch hint + optional stylized sanity signal.
+  useNuiEvent<HudState>('hud:config', (d) => setHud(d ?? null))
+  useNuiEvent<{ on?: boolean }>('hud:torch', (d) => setHud((h) => (h ? { ...h, torch: !!d?.on } : h)))
+
   useNuiEvent('atmosphere:stopAll', () => {
     setAtmo({ active: false })
     setDread(0)
@@ -140,6 +154,17 @@ export default function App() {
       {blinkKey > 0 && <BlinkOverlay key={blinkKey} durationMs={blinkMs} reduceMotion={atmo.reduceMotion} />}
       {logKey > 0 && log && <LogCaption key={logKey} text={log.text} kind={log.kind} reduceMotion={atmo.reduceMotion} />}
       {archive && <Archive tapes={archive.tapes} notes={archive.notes} confidence={archive.confidence} research={archive.research} />}
+      {hud?.inLevel && (
+        <LevelHud
+          torchHint={hud.torchHint}
+          torchOn={hud.torch}
+          torchKey={hud.torchKey}
+          torchLabel={hud.torchLabel}
+          showSanity={hud.showSanity}
+          dread={dread}
+          reduceMotion={atmo.reduceMotion}
+        />
+      )}
     </>
   )
 }

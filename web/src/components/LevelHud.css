@@ -1,0 +1,67 @@
+/* In-level HUD: bottom-left, low-key, diegetic. CEF-cheap (no filters/blend). */
+.lhud {
+  position: fixed;
+  right: 26px;
+  bottom: 64px; /* clears the bottom-right proximity/voice widget */
+  z-index: 6;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: 14px;
+  pointer-events: none;
+  font-family: 'Courier New', monospace;
+  color: rgba(225, 225, 215, 0.7);
+}
+
+/* Torch hint — dim when off, warm when on. */
+.lhud-torch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  opacity: 0.5;
+  transition: opacity 200ms linear, color 200ms linear;
+}
+.lhud-torch--on {
+  opacity: 0.95;
+  color: #ffd98a;
+}
+.lhud-key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+.lhud-label {
+  font-size: 0.74rem;
+  letter-spacing: 0.12em;
+}
+
+/* Stylized sanity signal: increasing-height bars; fewer lit = worse, and the lit
+   bars flicker harder as --dread rises. No numbers — a felt readout, not a meter. */
+.lhud-sig {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 24px;
+}
+.lhud-bar {
+  width: 4px;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.12);
+}
+.lhud-bar--on {
+  background: rgba(120, 200, 150, 0.7);
+  animation: lhud-flick calc(1.7s - var(--dread, 0) * 1.3s) steps(2) infinite;
+}
+@keyframes lhud-flick {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: calc(1 - var(--dread, 0) * 0.7); }
+}
+
+.lhud--rm .lhud-bar--on { animation: none; }

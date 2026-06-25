@@ -12,6 +12,30 @@ MBT.General = {
     InteractKey = 'E', -- pass through Enter points / pick up / drink
 }
 
+-- MBT notification standard: every notification flows through this one client-side
+-- function, so a server owner wires their framework's notify ONCE here. Called with
+-- { title?, description, type?, duration? }. Default = native GTA feed (standalone,
+-- no dependency); uncomment a preset for your stack. (Same pattern as mbt_elevator /
+-- mbt_malisling — keep this block identical across mbt_* resources.)
+MBT.Notification = function(data)
+    -- Default: native GTA feed (works with no framework)
+    -- BeginTextCommandThefeedPost('STRING')
+    -- AddTextComponentSubstringPlayerName(data.description or data.title or '')
+    -- EndTextCommandThefeedPostTicker(false, true)
+
+    -- ox_lib:
+    -- exports.ox_lib:notify({ title = data.title, description = data.description, type = data.type or 'inform', duration = data.duration or 4000 })
+    
+    -- ESX:
+    -- ESX.ShowNotification(data.description or data.title)
+    
+    -- QBCore:
+    -- QBCore.Functions.Notify(data.description or data.title, data.type or 'primary')
+    
+    -- mbt_visual (our own notification system):
+    -- exports.mbt_visual:notify({ title = data.title, description = data.description, type = data.type or 'inform', duration = data.duration or 5000 })
+end
+
 -------------------------------------------------------------------------------
 -- [ SECTION 2: GAMEPLAY ] --
 -------------------------------------------------------------------------------
@@ -229,7 +253,14 @@ MBT.Artifacts = {
     Enabled       = true,
     SpawnPerVisit = 2,
     PickupRange   = 1.8,
-    PropModel     = 'prop_notepad_01', 
+    PropModel     = 'prop_notepad_01', -- fallback (used for type='log')
+    -- Distinct prop per artifact type (falls back to PropModel). Verify in-game and
+    -- swap any that don't spawn (a warn fires on load failure). 'tape' is a CANDIDATE
+    -- cassette model — confirm it exists on your build or pick your own.
+    PropModelByType = {
+        log  = 'prop_notepad_01',
+        tape = 'm23_2_prop_m32_cassette_01a',
+    },
     -- `id` is a stable unique key; `category` feeds the Archive's per-category
     -- confidence (entity | exits | personnel | geometry | contamination).
     Pool = {
@@ -306,6 +337,15 @@ MBT.Light = {
     Range           = 25.0, -- spotlight mode tuning
     Brightness      = 4.0,
     Radius          = 7.0,
+}
+
+-- Minimal in-level HUD: a torch-key hint + an OPTIONAL stylized sanity indicator.
+-- Diegetic by design — ShowSanity is a STYLIZED signal (not a number/bar) and is OFF
+-- by default to keep the liminal "no-HUD" tone; the vignette/shake are the real tell.
+MBT.HUD = {
+    Enabled    = true,
+    TorchHint  = true,  -- show the "[F] torch" key hint while inside a level
+    ShowSanity = false, -- stylized signal indicator (no numbers); opt-in
 }
 
 -------------------------------------------------------------------------------

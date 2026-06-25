@@ -80,10 +80,10 @@ if cfg and cfg.Enabled then
                 recovered[src] = recovered[src] or {}
                 local n = 0
                 for id in pairs(ids) do recovered[src][id] = true; n = n + 1 end
-                if n > 0 and Bridge and Bridge.Notify then
+                if n > 0 then
                     local msg = (MBT.Locale and MBT.Locale.notify_recovered)
                         or 'Recovered %d recording(s) from the Backrooms'
-                    Bridge.Notify(src, msg:format(n))
+                    Utils.Notify(src, msg:format(n))
                 end
                 updateExitLiteracy(src)
             end

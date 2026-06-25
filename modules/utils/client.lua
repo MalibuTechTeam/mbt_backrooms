@@ -32,3 +32,11 @@ function Utils.ShowHelpNotification(text)
     AddTextComponentSubstringPlayerName(text)
     EndTextCommandDisplayHelp(0, false, true, 5000)
 end
+
+-- Universal notification sink: every server-side Utils.Notify routes here, and the
+-- single config-driven MBT.Notification(data) decides how it's shown (native GTA
+-- feed by default; framework presets in config). Not framework-specific.
+RegisterNetEvent('mbt_backrooms:notify', function(data)
+    if type(data) == 'string' then data = { description = data } end
+    if MBT.Notification then MBT.Notification(data) end
+end)

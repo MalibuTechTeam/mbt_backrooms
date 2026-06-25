@@ -6,6 +6,7 @@ Locales['it'] = {
     ["prompt_take"]         = "registra",
     ["prompt_drink"]        = "bevi",
     ["prompt_archive"]      = "rivedi i nastri",
+    ["hud_torch"]           = "torcia",
     ["keymapping_label"]    = "Backrooms: attraversa",
     ["keymapping_take"]     = "Backrooms: raccogli registrazione",
     ["keymapping_drink"]    = "Backrooms: bevi Almond Water",

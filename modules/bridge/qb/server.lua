@@ -4,8 +4,4 @@ if GetResourceState('qb-core') ~= 'started' or GetResourceState('qbx_core') == '
 Bridge = Bridge or {}
 Bridge.Framework = 'qb'
 
-function Bridge.Notify(src, msg)
-    TriggerClientEvent('QBCore:Notify', src, msg)
-end
-
 Utils.MbtDebugger('bridge: qb loaded')

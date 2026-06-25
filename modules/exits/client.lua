@@ -168,4 +168,25 @@ if MBT.Debug then
                 :format(e.i, #(pc - vector3(e.x, e.y, e.z)), e.x, e.y, e.z, e.r or 1.6))
         end
     end, false)
+
+    -- Curated exits are invisible by design — render an amber pull-in-zone marker on
+    -- each active exit (within 60m) so they can be placed/tested against Iakko's map.
+    CreateThread(function()
+        while true do
+            local sleep = 1000
+            local exits = LocalPlayer.state['mbt_backrooms:inLevel'] and LocalPlayer.state['mbt_backrooms:activeExits']
+            if type(exits) == 'table' and #exits > 0 then
+                local pc = GetEntityCoords(PlayerPedId())
+                for _, e in ipairs(exits) do
+                    if #(pc - vector3(e.x, e.y, e.z)) < 60.0 then
+                        sleep = 0
+                        local r = e.r or 1.6
+                        DrawMarker(1, e.x, e.y, e.z - 0.95, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                            r * 2, r * 2, 2.0, 255, 190, 60, 110, false, false, 2, false, nil, nil, false)
+                    end
+                end
+            end
+            Wait(sleep)
+        end
+    end)
 end

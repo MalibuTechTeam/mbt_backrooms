@@ -25,3 +25,10 @@ end
 function Utils.ClearRateLimit(src)
     lastAction[src] = nil
 end
+
+-- Send a notification to a player. Framework-agnostic (NOT a bridge concern): the
+-- client renders it via the config's MBT.Notification(data). Accepts a string or a
+-- { title?, description, type?, duration? } table.
+function Utils.Notify(src, data)
+    TriggerClientEvent('mbt_backrooms:notify', src, type(data) == 'table' and data or { description = data })
+end

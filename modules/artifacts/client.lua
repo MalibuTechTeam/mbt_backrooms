@@ -35,14 +35,15 @@ local function clearProps()
     hidePrompt()
 end
 
-local function spawnProp(i, x, y, z)
-    local model = cfg.PropModel or 'prop_notepad_01'
+local function spawnProp(i, x, y, z, kind)
+    -- Distinct prop per artifact type (tape vs log), falling back to PropModel.
+    local model = (cfg.PropModelByType and cfg.PropModelByType[kind]) or cfg.PropModel or 'prop_notepad_01'
     local hash = joaat(model)
     RequestModel(hash)
     local t = 2000
     while not HasModelLoaded(hash) and t > 0 do Wait(50); t = t - 50 end
     if not HasModelLoaded(hash) then
-        MBTLog.Warn('artifact prop failed to load — swap MBT.Artifacts.PropModel:', model)
+        MBTLog.Warn('artifact prop failed to load — swap MBT.Artifacts.PropModel(ByType):', model)
         return
     end
     -- spawn slightly ABOVE the configured z so PlaceObjectOnGroundProperly can
@@ -74,7 +75,7 @@ CreateThread(function()
                 end
             end
             for i, a in pairs(want) do
-                if not props[i] then current[i] = a; spawnProp(i, a.x, a.y, a.z) end
+                if not props[i] then current[i] = a; spawnProp(i, a.x, a.y, a.z, a.type) end
             end
 
             local pc = GetEntityCoords(PlayerPedId())
@@ -160,4 +161,24 @@ if MBT.Debug then
             end
         end
     end, false)
+
+    -- Cyan marker on each active artifact (within 60m) — to spot props that landed
+    -- in the void / behind geometry while placing the pool against Iakko's map.
+    CreateThread(function()
+        while true do
+            local sleep = 1000
+            local active = LocalPlayer.state[STATE_INLEVEL] and LocalPlayer.state[STATE_ARTIFACTS]
+            if type(active) == 'table' and #active > 0 then
+                local pc = GetEntityCoords(PlayerPedId())
+                for _, a in ipairs(active) do
+                    if #(pc - vector3(a.x, a.y, a.z)) < 60.0 then
+                        sleep = 0
+                        DrawMarker(1, a.x, a.y, a.z - 0.95, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                            0.6, 0.6, 2.0, 80, 200, 255, 120, false, false, 2, false, nil, nil, false)
+                    end
+                end
+            end
+            Wait(sleep)
+        end
+    end)
 end
