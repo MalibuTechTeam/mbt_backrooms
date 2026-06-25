@@ -112,10 +112,31 @@ CreateThread(function()
     end
 end)
 
-RegisterCommand('mbt_artifact_take', function()
-    if nearestIdx and not isLocked() then
-        TriggerServerEvent('mbt_backrooms:requestCollect', nearestIdx)
+local taking = false
+
+-- Crouch-and-grab feedback before the collect request (cosmetic, config-driven).
+local function playPickup(cb)
+    local a = cfg.PickupAnim
+    local time = (a and a.time) or 900
+    if a and a.dict then
+        RequestAnimDict(a.dict)
+        local t = 800
+        while not HasAnimDictLoaded(a.dict) and t > 0 do Wait(20); t = t - 20 end
+        if HasAnimDictLoaded(a.dict) then
+            TaskPlayAnim(PlayerPedId(), a.dict, a.clip, 8.0, -8.0, time, 0, 0.0, false, false, false)
+        end
     end
+    SetTimeout(time, cb)
+end
+
+RegisterCommand('mbt_artifact_take', function()
+    if not nearestIdx or isLocked() or taking then return end
+    taking = true
+    local idx = nearestIdx
+    playPickup(function()
+        taking = false
+        TriggerServerEvent('mbt_backrooms:requestCollect', idx)
+    end)
 end, false)
 RegisterKeyMapping('mbt_artifact_take',
     (MBT.Locale and MBT.Locale.keymapping_take) or 'Backrooms: take recording',

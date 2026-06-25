@@ -297,7 +297,14 @@ end)
 -- respawns you on the surface clean, not stuck with the level's effects.
 RegisterNetEvent('mbt_backrooms:exitOnDeath', function()
     local src = source
-    if Player(src).state[STATE_INLEVEL] then Core.ClearState(src) end
+    if not Player(src).state[STATE_INLEVEL] then return end
+    Core.ClearState(src)
+    -- Return to the surface on respawn so they don't wake up stuck in the empty
+    -- backroom (the client teleports once its ped is alive again).
+    if MBT.OnDeathReturnSurface ~= false then
+        local p = pickSurface()
+        if p then TriggerClientEvent('mbt_backrooms:surfaceOnRespawn', src, p) end
+    end
 end)
 
 AddEventHandler('playerDropped', function()

@@ -49,6 +49,11 @@ MBT.ExitRules = {
     default = { surface = 30, backroom = 70 }, -- ~70% stay trapped (v1 feel)
 }
 
+-- On death inside a level, drop the player back to a surface point on respawn (so
+-- they never wake up stuck in the now-empty backroom). Set false on framework
+-- servers whose medical/hospital system should own the respawn instead.
+MBT.OnDeathReturnSurface = true
+
 -- Interior spawn coords, one per level.
 MBT.Coords = {
     vector3(1026.88, 801.66, 25.88),   -- lvl_01 Iakko
@@ -261,6 +266,9 @@ MBT.Artifacts = {
         log  = 'prop_notepad_01',
         tape = 'm23_2_prop_m32_cassette_01a',
     },
+    -- Crouch-and-grab animation when you record/pick one up (cosmetic). time = ms
+    -- the collect request fires at the end so the prop vanishes as you "grab" it.
+    PickupAnim = { dict = 'anim@mp_snowball', clip = 'pickup_snowball', time = 900 },
     -- `id` is a stable unique key; `category` feeds the Archive's per-category
     -- confidence (entity | exits | personnel | geometry | contamination).
     Pool = {

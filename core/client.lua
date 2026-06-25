@@ -154,6 +154,12 @@ end)
 -- leaves the backrooms atmosphere applied while you're actually on the surface.
 -- The server clears the state; the inLevel-change handlers tear down the effects.
 -------------------------------------------------------------------------------
+-- Server hands us a surface point when we die inside; we drop there once respawned.
+local pendingSurface = nil
+RegisterNetEvent('mbt_backrooms:surfaceOnRespawn', function(coord)
+    if coord then pendingSurface = coord end
+end)
+
 CreateThread(function()
     while not NetworkIsPlayerActive(PlayerId()) or not DoesEntityExist(PlayerPedId()) do Wait(250) end
     Wait(500)
@@ -164,6 +170,14 @@ CreateThread(function()
         local dead = IsEntityDead(PlayerPedId())
         if dead and not wasDead and LocalPlayer.state['mbt_backrooms:inLevel'] then
             TriggerServerEvent('mbt_backrooms:exitOnDeath') -- died inside -> server pulls us out (option A)
+        end
+        -- Once alive again with a surface point queued (set the moment we died
+        -- inside), drop there. Not gated on the dead->alive edge, so it still fires
+        -- if the server's coord arrives just after the respawn.
+        if not dead and pendingSurface then
+            Wait(400) -- let the respawn settle, then drop to the surface
+            Utils.TeleportPlayer(PlayerPedId(), vector3(pendingSurface.x, pendingSurface.y, pendingSurface.z))
+            pendingSurface = nil
         end
         wasDead = dead
         Wait(500)
