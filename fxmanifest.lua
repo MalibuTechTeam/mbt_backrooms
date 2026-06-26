@@ -32,6 +32,7 @@ server_scripts {
   'core/server.lua',
   'modules/sanity/server.lua',
   'modules/artifacts/server.lua',
+  'modules/archive/server.lua',
   'modules/almondwater/server.lua',
   'modules/admin/server.lua'
 }

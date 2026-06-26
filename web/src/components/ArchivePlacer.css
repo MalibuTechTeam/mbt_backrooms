@@ -1,0 +1,64 @@
+/* Admin placement popup — bottom-right control panel, focused (cursor). */
+.aplc {
+  position: fixed;
+  right: 26px;
+  bottom: 26px;
+  z-index: 9;
+  pointer-events: auto; /* re-enable input: the NUI root is pointer-events:none */
+  font-family: 'Courier New', monospace;
+  color: rgba(225, 230, 215, 0.92);
+}
+.aplc-panel {
+  width: 280px;
+  max-height: 88vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  background: rgba(12, 14, 10, 0.97);
+  border: 1px solid rgba(120, 200, 150, 0.3);
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+}
+.aplc-h {
+  letter-spacing: 0.12em;
+  color: #6fd08c;
+  font-size: 0.82rem;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(120, 200, 150, 0.2);
+}
+.aplc button {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(120, 200, 150, 0.25);
+  color: rgba(225, 230, 215, 0.9);
+  font-family: inherit;
+  font-size: 0.74rem;
+  padding: 7px 6px;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+}
+.aplc button:hover { background: rgba(120, 200, 150, 0.14); }
+.aplc-wide { width: 100%; }
+.aplc-row { display: flex; align-items: center; gap: 6px; }
+.aplc-lbl { font-size: 0.72rem; opacity: 0.6; }
+.aplc-step { flex: 1; }
+.aplc-step.on { background: rgba(120, 200, 150, 0.22); color: #cfeede; }
+.aplc-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.aplc-sec {
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(111, 208, 140, 0.7);
+  margin-top: 4px;
+}
+.aplc-grid .aplc-wide { grid-column: 1 / -1; }
+.aplc-toggle { letter-spacing: 0.08em; }
+.aplc-toggle.on { background: rgba(120, 200, 150, 0.22) !important; color: #cfeede; border-color: rgba(120, 200, 150, 0.5) !important; }
+.aplc-actions { display: flex; gap: 6px; margin-top: 4px; }
+.aplc-actions button { flex: 1; }
+.aplc-save { border-color: rgba(120, 200, 150, 0.5) !important; color: #8fe0a8 !important; }
+.aplc-remove { border-color: rgba(217, 67, 63, 0.5) !important; color: #e8867f !important; }

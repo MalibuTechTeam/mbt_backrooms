@@ -9,8 +9,9 @@ import StrainVignette from './components/StrainVignette'
 import BlinkOverlay from './components/BlinkOverlay'
 import ExitWarp from './components/ExitWarp'
 import LogCaption from './components/LogCaption'
-import Archive from './components/Archive'
 import LevelHud from './components/LevelHud'
+import ArchivePlacer from './components/ArchivePlacer'
+import Archive from './components/Archive'
 import InteractPrompt from './components/InteractPrompt'
 import { atmosphereAudio } from './audio/atmosphereAudio'
 
@@ -37,12 +38,6 @@ interface PromptData {
   type: string
   reduceMotion?: boolean
 }
-interface ArchiveData {
-  tapes: { id: string; type?: string; text: string }[]
-  notes?: { category: string; text: string }[]
-  confidence?: Record<string, number>
-  research?: boolean
-}
 interface HudState {
   inLevel: boolean
   torch: boolean
@@ -50,6 +45,12 @@ interface HudState {
   showSanity: boolean
   torchKey: string
   torchLabel: string
+}
+interface Rect { x: number; y: number; w: number; h: number }
+interface ArchiveOverlay {
+  data: { tapes: { id: string; type?: string; text: string }[]; notes?: { category: string; text: string }[]; confidence?: Record<string, number>; research?: boolean }
+  rect?: Rect
+  phase: 'on' | 'off'
 }
 
 // Browser dev preview: atmosphere on + a low-sanity vignette.
@@ -71,8 +72,9 @@ export default function App() {
   const [blinkMs, setBlinkMs] = useState(220)
   const [log, setLog] = useState<{ text: string; kind?: string } | null>(null)
   const [logKey, setLogKey] = useState(0)
-  const [archive, setArchive] = useState<ArchiveData | null>(null)
   const [hud, setHud] = useState<HudState | null>(null)
+  const [placer, setPlacer] = useState(false)
+  const [archive, setArchive] = useState<ArchiveOverlay | null>(null)
   const [prompt, setPrompt] = useState<PromptData | null>(null)
 
   useNuiEvent<AtmoState>('atmosphere:state', (d) => setAtmo(d ?? { active: false }))
@@ -113,15 +115,23 @@ export default function App() {
     setLogKey((k) => k + 1)
   })
 
-  // Archive terminal: open/close the interactive recovered-tapes panel.
-  useNuiEvent<ArchiveData>('archive:open', (d) =>
-    setArchive({ tapes: d?.tapes ?? [], notes: d?.notes ?? [], confidence: d?.confidence ?? {}, research: !!d?.research }),
-  )
-  useNuiEvent('archive:close', () => setArchive(null))
-
   // In-level HUD: torch hint + optional stylized sanity signal.
   useNuiEvent<HudState>('hud:config', (d) => setHud(d ?? null))
   useNuiEvent<{ on?: boolean }>('hud:torch', (d) => setHud((h) => (h ? { ...h, torch: !!d?.on } : h)))
+
+  // Archive placement popup (admin).
+  useNuiEvent('archivePlacer:open', () => setPlacer(true))
+  useNuiEvent('archivePlacer:close', () => setPlacer(false))
+
+  // Archive terminal: crisp NUI overlay projected onto the TV screen ([E]).
+  useNuiEvent<{ archive: ArchiveOverlay['data']; rect?: Rect }>('archive:show', (d) =>
+    setArchive({ data: d?.archive ?? { tapes: [] }, rect: d?.rect, phase: 'on' }),
+  )
+  useNuiEvent<Rect>('archive:rect', (d) => setArchive((a) => (a ? { ...a, rect: d } : a)))
+  useNuiEvent('archive:hide', () => {
+    setArchive((a) => (a ? { ...a, phase: 'off' } : a))
+    window.setTimeout(() => setArchive(null), 420)
+  })
 
   useNuiEvent('atmosphere:stopAll', () => {
     setAtmo({ active: false })
@@ -153,7 +163,6 @@ export default function App() {
       {glitchKey > 0 && <EntryGlitch key={glitchKey} intensity={glitchIntensity} />}
       {blinkKey > 0 && <BlinkOverlay key={blinkKey} durationMs={blinkMs} reduceMotion={atmo.reduceMotion} />}
       {logKey > 0 && log && <LogCaption key={logKey} text={log.text} kind={log.kind} reduceMotion={atmo.reduceMotion} />}
-      {archive && <Archive tapes={archive.tapes} notes={archive.notes} confidence={archive.confidence} research={archive.research} />}
       {hud?.inLevel && (
         <LevelHud
           torchHint={hud.torchHint}
@@ -163,6 +172,18 @@ export default function App() {
           showSanity={hud.showSanity}
           dread={dread}
           reduceMotion={atmo.reduceMotion}
+        />
+      )}
+      {placer && <ArchivePlacer />}
+      {archive && (
+        <Archive
+          embedded
+          phase={archive.phase}
+          rect={archive.rect}
+          tapes={archive.data.tapes}
+          notes={archive.data.notes}
+          confidence={archive.data.confidence}
+          research={archive.data.research}
         />
       )}
     </>

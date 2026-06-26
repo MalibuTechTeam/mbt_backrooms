@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, type CSSProperties } from 'react'
 import { fetchNui } from '../utils/fetchNui'
 import './Archive.css'
 
@@ -16,6 +16,9 @@ interface Props {
   notes?: Note[]
   confidence?: Record<string, number>
   research?: boolean
+  embedded?: boolean // rendered on the in-world TV (no NUI focus / close button)
+  phase?: 'on' | 'off' // CRT power transition
+  rect?: { x: number; y: number; w: number; h: number } // screen-space box to sit on the TV screen
 }
 
 const CAT_LABEL: Record<string, string> = {
@@ -40,23 +43,34 @@ function tier(n: number): string {
  * "field notes" unlocked by per-category confidence. Opened with NUI focus by the
  * terminal module; ESC or the close button tells Lua to release focus.
  */
-export default function Archive({ tapes, notes = [], confidence = {}, research }: Props) {
+export default function Archive({ tapes, notes = [], confidence = {}, research, embedded, phase, rect }: Props) {
   useEffect(() => {
+    if (embedded) return // the game frames the TV and handles exit; no NUI focus here
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') fetchNui('archiveClose')
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [])
+  }, [embedded])
 
   const cats = CAT_ORDER.filter((c) => (confidence[c] ?? 0) > 0)
 
+  const rectStyle = rect
+    ? { inset: 'auto', left: `${rect.x * 100}vw`, top: `${rect.y * 100}vh`, width: `${rect.w * 100}vw`, height: `${rect.h * 100}vh` }
+    : undefined
   return (
-    <div className="arc">
+    <div
+      className={embedded ? `arc arc--embedded arc--p${phase ?? 'on'}${rect ? ' arc--rect' : ''}` : 'arc'}
+      style={rectStyle as CSSProperties | undefined}
+    >
       <div className="arc-panel">
         <div className="arc-head">
           <span className="arc-title">◉ ASYNC RESEARCH ARCHIVE</span>
-          <button className="arc-close" onClick={() => fetchNui('archiveClose')}>✕ ESC</button>
+          {embedded ? (
+            <span className="arc-exit">[E] / ⌫ exit</span>
+          ) : (
+            <button className="arc-close" onClick={() => fetchNui('archiveClose')}>✕ ESC</button>
+          )}
         </div>
 
         <div className="arc-body">

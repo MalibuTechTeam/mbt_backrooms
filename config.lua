@@ -357,22 +357,42 @@ MBT.HUD = {
 }
 
 -------------------------------------------------------------------------------
--- [ SECTION 10: ARCHIVE — review recovered tapes on a surface terminal ] --
+-- [ SECTION 10: ARCHIVE — review recovered tapes on an in-world TV screen ] --
 -------------------------------------------------------------------------------
 
--- A CRT terminal on the surface where recovered tapes/logs (Section 7) are reviewed:
--- walk up, [E], a found-footage archive lists what you've recovered + plays back each
--- log's text. The payoff of the recover loop. Persist = false = session-only
--- (standalone); KVP/framework persistence is a 2.1 add.
+-- A TV terminal where recovered tapes/logs (Section 7) are reviewed: walk up, [E]
+-- frames the screen in close-up and plays the archive as a DUI on the TV. Place it
+-- in-game with /brsetarchive (admin) — the transform persists server-side (KVP), so
+-- it stays where you put it across restarts and is shared by everyone.
 MBT.Archive = {
     Enabled     = true,
-    Persist     = false,            -- false = per-session (resets on relog)
-    PromptRange = 1.8,
-    PropModel   = 'prop_tv_flat_01', -- terminal prop (swap if it doesn't spawn)
-    -- Surface terminal(s). FAKE placeholder — grab a real spot with /brhere.
-    Terminals = {
-        { coords = vector3(-1108.0, -2008.0, 13.2), heading = 0.0 },
-    },
+    PromptRange = 2.0,
+    Prop        = 'xm_prop_x17_tv_flat_01', -- large flat TV placed via /brsetarchive; RT 'tv_flat_01' (confirmed)
+    -- No auto-spawn: the terminal exists only once placed with /brsetarchive (a popup
+    -- to position it) and persisted via KVP. Set DefaultSpawn = { x,y,z,h } to ship a
+    -- pre-placed one. nil = placement-only.
+    DefaultSpawn = nil,
+    -- The DUI renders onto the prop's screen via a render target (mbt_shooting pattern;
+    -- full prop list lives in mbt_shooting/modules/leaderboard/client.lua → SCREEN_PROPS).
+    -- RenderTarget MUST match the prop's screen RT name. Confirmed prop → RT:
+    --   prop_tv_flat_01/02/03 · prop_tv_02 · prop_monitor_02 · v_ilev_lest_bigscreen → 'tvscreen'
+    --   xm_prop_x17_tv_flat_01 · sm_prop_smug_tv_flat_01 → 'tv_flat_01'
+    --   xs_prop_arena_screen_tv_01 → 'screen_tv_01'
+    --   prop_big_cin_screen → 'cinscreen'  ·  prop_huge_display_01/02 → 'big_disp'
+    -- NOTE: xm_prop_x17_tv_stand_01a has NO usable RT (its screen stays default/magenta).
+    RenderTarget = 'tv_flat_01',
+    RenderRange  = 25.0, -- start drawing the screen within this distance (m)
+    -- [E] frames the TV for a close-up read. side = which way the screen faces vs the
+    -- prop heading (+1 / -1, flip if the cam ends up behind). aimZ/height ≈ screen level.
+    Camera = { dist = 1.8, side = -1.0, aimZ = 1.1, height = 1.1, fov = 42.0 },
+    -- TV screen face geometry (metres, relative to the prop), used to project the
+    -- CRISP NUI overlay exactly onto the screen in the framed view (no blurry DUI).
+    -- offY = forward to the glass · offZ = up to the screen centre · w/h = screen size.
+    Screen = { offX = 0.0, offY = 0.04, offZ = 0.0, w = 1.05, h = 0.6 },
+    -- Optional decorative prop by the TV (a cassette/VCR) to sell the "tape" idea.
+    -- Spawned relative to the TV (heading-rotated offset). nil = none; tune offsets to
+    -- your scene (a wall-mounted TV has no shelf, so it may float — adjust or disable).
+    Decor = nil, -- e.g. { model = 'm23_2_prop_m32_cassette_01a', offX = 0.0, offY = 0.1, offZ = -0.5, heading = 0.0 }
 
     -- Research mode: recovered tapes raise a per-category "confidence" that unlocks
     -- diegetic knowledge in the archive. Reward = knowing, not loot. Per-player for
