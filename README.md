@@ -38,6 +38,7 @@
 - **Server-authoritative sanity (0–100)** — decays while inside (faster when you're **alone** in your level), regenerates on the surface.
 - **Diegetic feedback** — a closing-in vignette ramps at low sanity; camera shake + heavier distortion kick in when critical. No HUD meter — the dread is sensory.
 - **Entity sightings** cost sanity instantly.
+- **First-contact dread (multiplayer)** — the Backrooms are a *shared* world: two players who land in the same level coexist. The first time another lost soul comes close, a reality-jolt fires and your sanity spikes — for a beat you can't tell a person from the entity. No nameplate, no marker. Being with someone slows your decay, but that first sighting always costs.
 
 ### The Entity (Don't-Blink)
 - **Weeping-Angel mechanic** — in darkness / low sanity an entity appears at a distance, **freezes while you look at it**, and **creeps toward you while unobserved**. Reaching you = sanity hit + vanish.
@@ -190,6 +191,20 @@ MBT.Sanity = {
 }
 ```
 
+### First-contact dread (multiplayer)
+
+```lua
+MBT.PlayerContact = {
+    Enabled     = true,
+    Range       = 22.0, -- another wanderer this close triggers the startle (m)
+    Linger      = 6.0,  -- must move beyond Range+Linger to re-arm a later approach
+    SanitySpike = 8,    -- the nervous-system jolt on first contact
+    CooldownSec = 25,   -- min seconds between startles (per player + global rate-limit)
+    Sound       = true, -- play the entry sting on contact
+}
+```
+> Shared world, no instancing. Entry picks a *random* level, so friends who enter separately may not meet — faithful to the lore. Use `/brbring [id]` (admin) to pull someone into your level.
+
 ### Entities
 
 ```lua
@@ -310,6 +325,7 @@ end
 | `/brtc` | Cycle timecycle variants to preview them |
 | `/brtorch` | Toggle the torch |
 | `/brglimpse` | Force an entity glimpse now |
+| `/brcontact` | Fire a first-contact startle (test the jolt + sanity spike solo) |
 | `/brexits` · `/brartifacts` · `/bralmond` | List + marker the active curated exits / tapes / Almond Water |
 | `/brarchivedemo` | Power on the archive TV with every tape/note (preview the populated screen) |
 
@@ -355,6 +371,9 @@ They're the reward loop. Find tapes/logs inside, carry them out to "recover" the
 
 **Q: How do I place the archive TV?**
 Run `/brsetarchive` (admin or `MBT.Debug`): a popup lets you position the prop and tune the camera + on-screen rect live, then **Save** — it persists server-side. The TV prop must have a screen render target (e.g. `prop_tv_flat_02` → `tvscreen`, or the x17 flat → `tv_flat_01`).
+
+**Q: If two players enter, are they in the same Backrooms?**
+Yes — it's a single shared world (no instancing). Two players who roll the same level end up in the same place and can see each other; different levels means they're far apart. Entry is random, so friends entering separately may not land together — that's intentional (the lore). An admin can reunite them with `/brbring`. The first time you spot another player, expect a sanity jolt.
 
 **Q: The exits are invisible — is that a bug?**
 No — curated exits are *meant* to be unmarked. A screen/audio tell grows as you approach; linger inside to be pulled through. Enable `MBT.Debug` for markers + `/brexits` while placing them.
