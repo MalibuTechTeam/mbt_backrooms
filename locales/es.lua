@@ -13,4 +13,6 @@ Locales['es'] = {
     ["keymapping_archive"]  = "Backrooms: revisar archivo",
     ["notify_entered"]      = "Hiciste no-clip fuera de la realidad...",
     ["notify_recovered"]    = "Recuperadas %d grabaciones de las Backrooms",
+    ["notify_archive_saved"]   = "Terminal de archivo guardado.",
+    ["notify_archive_removed"] = "Terminal de archivo eliminado.",
 }

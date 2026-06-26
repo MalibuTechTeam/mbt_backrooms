@@ -13,4 +13,6 @@ Locales['en'] = {
     ["keymapping_archive"]  = "Backrooms: review archive",
     ["notify_entered"]      = "You no-clipped out of reality...",
     ["notify_recovered"]    = "Recovered %d recording(s) from the Backrooms",
+    ["notify_archive_saved"]   = "Archive terminal saved.",
+    ["notify_archive_removed"] = "Archive terminal removed.",
 }

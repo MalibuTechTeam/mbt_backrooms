@@ -37,7 +37,7 @@ RegisterNetEvent('mbt_backrooms:placeArchive', function(t)
     if type(t.screen) == 'table' then transform.screen = t.screen end -- persisted screen rect geometry
     SetResourceKvp(KEY, json.encode(transform))
     TriggerClientEvent('mbt_backrooms:archiveTransform', -1, transform)
-    if Utils and Utils.Notify then Utils.Notify(src, 'Archive terminal saved.') end
+    if Utils and Utils.Notify then Utils.Notify(src, (MBT.Locale and MBT.Locale.notify_archive_saved) or 'Archive terminal saved.') end
 end)
 
 -- Admin removes the terminal; clear KVP + tell everyone to despawn it.
@@ -47,5 +47,5 @@ RegisterNetEvent('mbt_backrooms:removeArchive', function()
     transform = nil
     DeleteResourceKvp(KEY)
     TriggerClientEvent('mbt_backrooms:archiveRemoved', -1)
-    if Utils and Utils.Notify then Utils.Notify(src, 'Archive terminal removed.') end
+    if Utils and Utils.Notify then Utils.Notify(src, (MBT.Locale and MBT.Locale.notify_archive_removed) or 'Archive terminal removed.') end
 end)
