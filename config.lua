@@ -6,17 +6,11 @@ MBT = MBT or {}
 
 MBT.Language = 'en'  -- 'en' | 'it' | 'es' (add your own in locales/)
 MBT.Debug    = false  -- MBTLog.Debug output + debug commands + zone markers
--- Logger badge ([BR]) lives in modules/utils/logger.lua's IDENTITY block, not here.
 
 MBT.General = {
     InteractKey = 'E', -- pass through Enter points / pick up / drink
 }
 
--- MBT notification standard: every notification flows through this one client-side
--- function, so a server owner wires their framework's notify ONCE here. Called with
--- { title?, description, type?, duration? }. Default = native GTA feed (standalone,
--- no dependency); uncomment a preset for your stack. (Same pattern as mbt_elevator /
--- mbt_malisling — keep this block identical across mbt_* resources.)
 MBT.Notification = function(data)
     -- Default: native GTA feed (works with no framework)
     -- BeginTextCommandThefeedPost('STRING')
@@ -116,7 +110,7 @@ MBT.Atmosphere = {
     Intensity = { Native = 0.85, NUI = 0.75, Audio = 0.55 }, -- 0..1 per family
 
     -- Level darkness = a linear NUI gloom (so the torch matters), 0 = off .. 1 = very
-    -- dark. ~0.4–0.55 = dim/oppressive. (Not a timecycle modifier — those blackout.)
+    -- dark. ~0.4–0.55 = dim/oppressive.
     Darkness = { Enabled = true, Strength = 0.45 },
 
     ReduceMotion   = false, -- kills shake + screen-tear + grain jitter
@@ -159,6 +153,20 @@ MBT.Sanity = {
     CriticalThreshold = 20, -- shake/distortion below this
     FullThreshold     = 98, -- Almond Water won't drink at/above this (no waste)
     PersistAcrossSessions = false, -- needs the framework bridge (2.1)
+}
+
+-- First-contact dread (lore-faithful): the first time another lost player comes
+-- close in your level, a reality-jolt fires + a sanity spike — "is that a person
+-- or the entity?". No nameplate/marker; re-arms once they move away (Range+Linger)
+-- and after CooldownSec. Other players slow your decay (occupancy, above) but the
+-- first sighting still costs — the Backrooms make every presence unnerving first.
+MBT.PlayerContact = {
+    Enabled     = true,
+    Range       = 22.0, -- another wanderer this close triggers the startle (m)
+    Linger      = 6.0,  -- must move beyond Range+Linger to re-arm a later approach
+    SanitySpike = 8,    -- the nervous-system jolt on first contact
+    CooldownSec = 25,   -- min seconds between startles from the SAME player
+    Sound       = true, -- play the entry sting on contact
 }
 
 -------------------------------------------------------------------------------
@@ -366,11 +374,6 @@ MBT.Archive = {
     PromptRange  = 2.0,
     Prop         = 'xm_prop_x17_tv_flat_01', -- flat TV (RT 'tv_flat_01'); placed via /brsetarchive
     DefaultSpawn = nil, -- nil = placement-only; set { x,y,z,h } to pre-place one
-    -- Prop's screen is a flat-black render target behind the NUI. RenderTarget MUST match
-    -- the prop's RT name (the stand variant has none → magenta). Confirmed prop → RT:
-    --   prop_tv_flat_01/02/03 · prop_tv_02 · prop_monitor_02 · v_ilev_lest_bigscreen → 'tvscreen'
-    --   xm_prop_x17_tv_flat_01 · sm_prop_smug_tv_flat_01 → 'tv_flat_01'
-    --   xs_prop_arena_screen_tv_01 → 'screen_tv_01' · prop_big_cin_screen → 'cinscreen'
     RenderTarget = 'tv_flat_01',
     RenderRange  = 25.0, -- draw the screen within this distance (m)
     -- [E] framing + screen-face geometry (m, vs prop) for the NUI projection. Both tuned

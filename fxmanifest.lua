@@ -49,6 +49,7 @@ client_scripts {
   'modules/hud/client.lua',
   'modules/sanity/client.lua',
   'modules/entities/client.lua',
+  'modules/contact/client.lua',
   'core/client.lua'
 }
 

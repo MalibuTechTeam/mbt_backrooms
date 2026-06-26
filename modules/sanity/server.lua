@@ -42,6 +42,17 @@ RegisterNetEvent('mbt_backrooms:glimpseSeen', function()
     Sanity.Hit(src, (MBT.Entities and MBT.Entities.SanityHit) or cfg.SmilerHit or 15)
 end)
 
+-- First-contact dread: client reports another lost player came close. Server owns
+-- the spike + rate-limits per CooldownSec so it can't be spammed into a drain.
+RegisterNetEvent('mbt_backrooms:playerContact', function()
+    local src = source
+    local pc = MBT.PlayerContact
+    if not (pc and pc.Enabled) then return end
+    if not Utils.RateLimit(src, 'contact', (pc.CooldownSec or 25) * 1000) then return end
+    if not Player(src).state['mbt_backrooms:inLevel'] then return end
+    Sanity.Hit(src, pc.SanitySpike or 8)
+end)
+
 if cfg.Enabled then
     CreateThread(function()
         local perMinToTick = TICK / 60000
