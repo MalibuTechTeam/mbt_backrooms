@@ -1,6 +1,5 @@
 Locales = Locales or {}
 Locales['en'] = {
-    ["prompt_pass_through"] = "Press ~INPUT_CONTEXT~ to pass through",
     ["prompt_enter"]        = "enter",
     ["prompt_leave"]        = "leave",
     ["prompt_take"]         = "record",

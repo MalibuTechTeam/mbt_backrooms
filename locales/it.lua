@@ -1,6 +1,5 @@
 Locales = Locales or {}
 Locales['it'] = {
-    ["prompt_pass_through"] = "Premi ~INPUT_CONTEXT~ per attraversare",
     ["prompt_enter"]        = "entra",
     ["prompt_leave"]        = "esci",
     ["prompt_take"]         = "registra",

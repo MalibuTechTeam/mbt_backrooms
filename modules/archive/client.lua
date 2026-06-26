@@ -311,7 +311,7 @@ RegisterNetEvent('mbt_backrooms:archiveData', function(ids)
             end
         end
     end
-    viewArchive({ action = 'archive:data', tapes = tapes, notes = notes, confidence = confidence, research = research })
+    viewArchive({ tapes = tapes, notes = notes, confidence = confidence, research = research })
 end)
 
 RegisterCommand('mbt_archive', function()
@@ -471,7 +471,7 @@ if MBT.Debug then
                 for _, h in ipairs(hints) do notes[#notes + 1] = { category = cat, text = h.text } end
             end
         end
-        viewArchive({ action = 'archive:data', tapes = tapes, notes = notes, confidence = confidence,
+        viewArchive({ tapes = tapes, notes = notes, confidence = confidence,
             research = (rm and rm.Enabled) or false })
     end, false)
 end

@@ -1,5 +1,4 @@
-import { useEffect, type CSSProperties } from 'react'
-import { fetchNui } from '../utils/fetchNui'
+import { type CSSProperties } from 'react'
 import './Archive.css'
 
 interface Tape {
@@ -38,21 +37,12 @@ function tier(n: number): string {
 }
 
 /**
- * Interactive archive panel — the recover-loop payoff. A found-footage CRT list of
- * the tapes/logs carried out of the Backrooms, plus (Research Mode) the diegetic
- * "field notes" unlocked by per-category confidence. Opened with NUI focus by the
- * terminal module; ESC or the close button tells Lua to release focus.
+ * The recover-loop payoff: a found-footage list of the tapes/logs carried out of the
+ * Backrooms, plus (Research Mode) the diegetic "field notes" unlocked by per-category
+ * confidence. Rendered as a crisp NUI projected onto the in-world TV screen — the game
+ * frames the TV and handles exit (no NUI focus).
  */
 export default function Archive({ tapes, notes = [], confidence = {}, research, embedded, phase, rect }: Props) {
-  useEffect(() => {
-    if (embedded) return // the game frames the TV and handles exit; no NUI focus here
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') fetchNui('archiveClose')
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [embedded])
-
   const cats = CAT_ORDER.filter((c) => (confidence[c] ?? 0) > 0)
 
   const rectStyle = rect
@@ -66,11 +56,7 @@ export default function Archive({ tapes, notes = [], confidence = {}, research, 
       <div className="arc-panel">
         <div className="arc-head">
           <span className="arc-title">◉ ASYNC RESEARCH ARCHIVE</span>
-          {embedded ? (
-            <span className="arc-exit">[E] / ⌫ exit</span>
-          ) : (
-            <button className="arc-close" onClick={() => fetchNui('archiveClose')}>✕ ESC</button>
-          )}
+          <span className="arc-exit">[E] / ⌫ exit</span>
         </div>
 
         <div className="arc-body">

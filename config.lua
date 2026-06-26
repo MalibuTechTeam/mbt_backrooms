@@ -5,7 +5,7 @@ MBT = MBT or {}
 -------------------------------------------------------------------------------
 
 MBT.Language = 'en'  -- 'en' | 'it' | 'es' (add your own in locales/)
-MBT.Debug    = false  -- MBTLog.Debug output + debug commands + zone markers
+MBT.Debug    = true  -- MBTLog.Debug output + debug commands + zone markers
 -- Logger badge ([BR]) lives in modules/utils/logger.lua's IDENTITY block, not here.
 
 MBT.General = {
@@ -93,7 +93,7 @@ MBT.BackRooms = {
 MBT.NoClipZones = {
     -- { coords = vector3(195.0, -934.0, 30.7), size = vector3(1.2, 1.2, 2.0), chance = 100, dwell = 0 },
     -- { coords = vector3(-1108.0, -2008.0, 13.2), radius = 1.5, chance = 30, dwell = 2 }, -- sphere
-    -- { coords = vector3(203.91, -931.36, 30.69), size = vector3(1.5, 1.5, 2.0), chance = 100, dwell = 0 }, -- local test zone
+    { coords = vector3(203.91, -931.36, 30.69), size = vector3(1.5, 1.5, 2.0), chance = 100, dwell = 0 }, -- local test zone
 }
 
 -------------------------------------------------------------------------------
@@ -170,9 +170,9 @@ MBT.Sanity = {
 MBT.Entities = {
     Enabled       = true,
     Models        = { 'Smiler_BR', 'Stealer' }, -- bundled peds (stream/entities)
-    MinSanityGate = 50,    -- glimpses only fire below this sanity
-    CooldownSec   = 90,    -- min seconds between glimpses
-    Chance        = 50,    -- % roll each eligible check
+    MinSanityGate = 70,    -- glimpses only fire below this sanity  (TEST)
+    CooldownSec   = 15,    -- min seconds between glimpses           (TEST)
+    Chance        = 100,   -- % roll each eligible check             (TEST)
     SpawnDistance = 18.0,
     HoldSec       = 6,     -- max linger (static-glimpse mode)
     GazeAngle     = 14.0,  -- within this many degrees = "looking at it"

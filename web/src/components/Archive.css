@@ -77,16 +77,6 @@
   color: #6fd08c;
   text-shadow: 0 0 8px rgba(111, 208, 140, 0.4);
 }
-.arc-close {
-  background: none;
-  border: 1px solid rgba(120, 200, 150, 0.3);
-  color: rgba(225, 230, 215, 0.8);
-  font-family: inherit;
-  padding: 4px 10px;
-  cursor: pointer;
-  letter-spacing: 0.1em;
-}
-.arc-close:hover { background: rgba(120, 200, 150, 0.12); }
 .arc-exit {
   font-size: 0.74rem;
   letter-spacing: 0.1em;
