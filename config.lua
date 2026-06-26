@@ -332,9 +332,8 @@ MBT.AlmondWater = {
 -- [ SECTION 9: LIGHT — torch + darkness pressure ] --
 -------------------------------------------------------------------------------
 
--- A torch you toggle inside. Tension: OFF = sanity decays ×DarkDecayMult but the
--- entity is less likely; ON = you see, but the entity is more likely (×LightEntityMult).
--- Doesn't touch the timecycle — it's a separate light + the 'mbt_backrooms:torch' state.
+-- Torch (toggle). OFF = sanity decays ×DarkDecayMult, entity rarer; ON = you see but
+-- the entity is likelier (×LightEntityMult). A separate light, not a timecycle.
 MBT.Light = {
     Enabled         = true,
     Key             = 'F',
@@ -347,9 +346,8 @@ MBT.Light = {
     Radius          = 7.0,
 }
 
--- Minimal in-level HUD: a torch-key hint + an OPTIONAL stylized sanity indicator.
--- Diegetic by design — ShowSanity is a STYLIZED signal (not a number/bar) and is OFF
--- by default to keep the liminal "no-HUD" tone; the vignette/shake are the real tell.
+-- In-level HUD: torch-key hint + opt-in stylized sanity signal (no number/bar — the
+-- vignette/shake stay the real tell). ShowSanity off by default to keep the no-HUD tone.
 MBT.HUD = {
     Enabled    = true,
     TorchHint  = true,  -- show the "[F] torch" key hint while inside a level
@@ -360,38 +358,26 @@ MBT.HUD = {
 -- [ SECTION 10: ARCHIVE — review recovered tapes on an in-world TV screen ] --
 -------------------------------------------------------------------------------
 
--- A TV terminal where recovered tapes/logs (Section 7) are reviewed: walk up, [E]
--- frames the screen in close-up and plays the archive as a DUI on the TV. Place it
--- in-game with /brsetarchive (admin) — the transform persists server-side (KVP), so
--- it stays where you put it across restarts and is shared by everyone.
+-- Surface TV terminal to review recovered tapes/logs (Section 7): walk up, [E] frames
+-- the screen and projects a crisp NUI onto it. Placed in-game with /brsetarchive (popup)
+-- and persisted server-side (KVP) — shared by everyone.
 MBT.Archive = {
-    Enabled     = true,
-    PromptRange = 2.0,
-    Prop        = 'xm_prop_x17_tv_flat_01', -- large flat TV placed via /brsetarchive; RT 'tv_flat_01' (confirmed)
-    -- No auto-spawn: the terminal exists only once placed with /brsetarchive (a popup
-    -- to position it) and persisted via KVP. Set DefaultSpawn = { x,y,z,h } to ship a
-    -- pre-placed one. nil = placement-only.
-    DefaultSpawn = nil,
-    -- The DUI renders onto the prop's screen via a render target (mbt_shooting pattern;
-    -- full prop list lives in mbt_shooting/modules/leaderboard/client.lua → SCREEN_PROPS).
-    -- RenderTarget MUST match the prop's screen RT name. Confirmed prop → RT:
+    Enabled      = true,
+    PromptRange  = 2.0,
+    Prop         = 'xm_prop_x17_tv_flat_01', -- flat TV (RT 'tv_flat_01'); placed via /brsetarchive
+    DefaultSpawn = nil, -- nil = placement-only; set { x,y,z,h } to pre-place one
+    -- Prop's screen is a flat-black render target behind the NUI. RenderTarget MUST match
+    -- the prop's RT name (the stand variant has none → magenta). Confirmed prop → RT:
     --   prop_tv_flat_01/02/03 · prop_tv_02 · prop_monitor_02 · v_ilev_lest_bigscreen → 'tvscreen'
     --   xm_prop_x17_tv_flat_01 · sm_prop_smug_tv_flat_01 → 'tv_flat_01'
-    --   xs_prop_arena_screen_tv_01 → 'screen_tv_01'
-    --   prop_big_cin_screen → 'cinscreen'  ·  prop_huge_display_01/02 → 'big_disp'
-    -- NOTE: xm_prop_x17_tv_stand_01a has NO usable RT (its screen stays default/magenta).
+    --   xs_prop_arena_screen_tv_01 → 'screen_tv_01' · prop_big_cin_screen → 'cinscreen'
     RenderTarget = 'tv_flat_01',
-    RenderRange  = 25.0, -- start drawing the screen within this distance (m)
-    -- [E] frames the TV for a close-up read. side = which way the screen faces vs the
-    -- prop heading (+1 / -1, flip if the cam ends up behind). aimZ/height ≈ screen level.
+    RenderRange  = 25.0, -- draw the screen within this distance (m)
+    -- [E] framing + screen-face geometry (m, vs prop) for the NUI projection. Both tuned
+    -- live via /brsetarchive; side = screen facing vs heading (flip if cam ends up behind).
     Camera = { dist = 1.8, side = -1.0, aimZ = 1.1, height = 1.1, fov = 42.0 },
-    -- TV screen face geometry (metres, relative to the prop), used to project the
-    -- CRISP NUI overlay exactly onto the screen in the framed view (no blurry DUI).
-    -- offY = forward to the glass · offZ = up to the screen centre · w/h = screen size.
     Screen = { offX = 0.0, offY = 0.04, offZ = 0.0, w = 1.05, h = 0.6 },
-    -- Optional decorative prop by the TV (a cassette/VCR) to sell the "tape" idea.
-    -- Spawned relative to the TV (heading-rotated offset). nil = none; tune offsets to
-    -- your scene (a wall-mounted TV has no shelf, so it may float — adjust or disable).
+    -- Optional decorative prop by the TV (cassette/VCR), relative offset. nil = none.
     Decor = nil, -- e.g. { model = 'm23_2_prop_m32_cassette_01a', offX = 0.0, offY = 0.1, offZ = -0.5, heading = 0.0 }
 
     -- Research mode: recovered tapes raise a per-category "confidence" that unlocks

@@ -13,7 +13,7 @@
   <img src="https://dunb17ur4ymx4.cloudfront.net/packages/images/824f127b2432767bde2afa0b13e1443ca0e03b12.png" alt="MBT Backrooms" />
 </p>
 
-**mbt_backrooms** turns the classic "fall out of reality" map into a full liminal-horror experience. Glitch into the Backrooms through hidden no-clip spots or a bad clip under the map, then survive a found-footage VHS world that erodes your **sanity**, watches you from the dark with a **Weeping-Angel entity**, and rarely lets you back out. Server-authoritative, multi-framework, and standalone-first — built with a modern React + TypeScript NUI overlay tuned for FiveM's CEF.
+**mbt_backrooms** turns the classic "fall out of reality" map into a full liminal-horror **survival loop**. Glitch into the Backrooms through hidden no-clip spots or a bad clip under the map, then survive a found-footage VHS world that erodes your **sanity**, watches you from the dark with a **Don't-Blink entity**, and rarely lets you back out. Toggle a **torch** to see (but the dark hides you), drink **Almond Water** to stay coherent, find your way out through **invisible curated exits** you have to *sense* — and recover **found-footage tapes** to review on an in-world **archive terminal** back on the surface. Server-authoritative, multi-framework, and standalone-first — built with a modern React + TypeScript NUI overlay tuned for FiveM's CEF.
 
 > **Free & community-first.** This project is and always will be free. Our goal is to involve as many FiveM mappers as possible so the Backrooms keep growing, level after level — every contributor gets added to the credits. It rides the liminal/Backrooms aesthetic (4chan → Kane Pixels → the 2026 film) without claiming any affiliation.
 
@@ -30,24 +30,39 @@
 ### Entering & escaping
 - **No-clip entry zones** — invisible volumes in "wrong" spots (dead-end corners, behind walls, under stairs). Walk in and reality fails. Server-validated with `chance` + `dwell` anti-exploit. Markers are **debug-only** — in production these spots stay invisible.
 - **Fall-through** — clip *under the map* and you're pulled in (tuned so falling off buildings never triggers it).
-- **Weighted exits** — exit points roll `MBT.ExitRules`: escape to the surface or get dumped back into another Backroom. Faithful to the lore — getting out is never guaranteed (default ~70% trapped). Per-exit overrides supported.
+- **Curated exits (sensed, not seen)** — the in-level way out: **invisible** exits with no marker and no prompt. A screen/audio **tell** intensifies as you near one, and lingering inside builds a **soft pull-in** (a paper-swirl warp) that pulls you through — step out to cancel. You learn the hum, not the map.
+- **Weighted destinations** — every exit rolls `MBT.ExitRules`: escape to the surface or get dumped back into another Backroom. Faithful to the lore — getting out is never guaranteed (default ~70% trapped). Per-exit overrides supported.
+- **Death returns you to the surface** — dying inside spits you back out on respawn instead of leaving you stuck in the void (`MBT.OnDeathReturnSurface`; turn off to defer to a framework medical system).
 
 ### Sanity
 - **Server-authoritative sanity (0–100)** — decays while inside (faster when you're **alone** in your level), regenerates on the surface.
 - **Diegetic feedback** — a closing-in vignette ramps at low sanity; camera shake + heavier distortion kick in when critical. No HUD meter — the dread is sensory.
 - **Entity sightings** cost sanity instantly.
 
-### The Entity (scripted glimpse / stalker)
+### The Entity (Don't-Blink)
 - **Weeping-Angel mechanic** — in darkness / low sanity an entity appears at a distance, **freezes while you look at it**, and **creeps toward you while unobserved**. Reaching you = sanity hit + vanish.
+- **Don't-Blink** — staring at it *drains your focus*: vision tunnels in, then a **forced blink** blacks the screen for a beat — and it lunges closer while your eyes are shut.
+- **Light attracts** — toggling the torch on makes a glimpse more likely (a deliberate risk/reward with seeing in the dark).
 - **Polished presence** — camera-raycast placement (never spawns in your face), a soft alpha fade-out, and a gaze-deferred despawn so it never pops out while you're staring at it.
 - **Model-agnostic** — ships with two bundled Backrooms peds (Smiler + Skin Stealer) and falls back gracefully; swap in your own via `MBT.Entities.Models`.
-- Optional **sound cue** on spawn / first look.
+
+### Survival — Almond Water & torch
+- **Almond Water** — canon item scattered through the levels: walk up, `[E]`, a drinking animation plays and your **sanity is restored** (refused when you're near-full, so it's never wasted). Standalone — no inventory needed.
+- **Torch + darkness** — levels are genuinely dark (a tunable NUI gloom, so the torch *matters*). Toggle a torch to see — but the dark keeps the entity at bay, and the light draws it in.
+
+### Found tapes & the Archive
+- **Found-footage tapes/logs** — scattered per visit; `[E]` to record one (a found-footage caption flashes — the reward is **lore, not loot**, no HUD counter). Carry them out to the surface to **recover** them.
+- **The Archive terminal** — an in-world TV on the surface: walk up, `[E]`, the camera frames the screen and it **powers on** (CRT-style) to play back your recovered footage as a crisp, projected NUI. Place/position the terminal in-game with an admin popup; it persists server-side.
+- **Research Mode** — recovered tapes raise a per-category **confidence** that unlocks diegetic **field notes** in the archive (knowledge, not loot). The `exits` category grants a small "sensory literacy" that makes the curated-exit tells read a touch earlier/clearer (capped — never a marker). Config-gated; off → the archive is pure-lore.
+
+### In-level HUD
+- A minimal, diegetic HUD: a **torch-key hint** and an **opt-in, non-numeric sanity signal** (a degrading indicator, not a bar) — off by default to keep the no-HUD tone.
 
 ### Architecture
-- **Server-authoritative teleport** — all entry/exit/state lives on the server via OneSync state bags (`inLevel` / `entryTime` / `exitLocked`), token-matched and rate-limited. Clients can't teleport themselves.
-- **Multi-framework bridge** — auto-detects **ESX**, **ox_lib**, **QBCore**, **QBox**, or **standalone** for notifications (and an inventory abstraction, dormant until 2.1).
+- **Server-authoritative** — all entry/exit/state lives on the server via OneSync state bags (`inLevel` / `entryTime` / `exitLocked` / `sanity` / `torch` / active sets), token-matched and rate-limited. Clients can't teleport themselves. The archive terminal's placement persists via KVP.
+- **One config-driven notification** — every notification flows through a single `MBT.Notification(data)` you wire once (native GTA feed by default; ox_lib / ESX / QBCore / `mbt_visual` presets commented in config). The framework bridge now only **detects** the stack (auto: ESX → ox_lib → QBCore → QBox → standalone) + holds an inventory abstraction, dormant until 2.1.
 - **Admin tooling** — ACE-gated commands to inspect and manage players in the Backrooms.
-- **MBT modular pattern** — `core/`, `modules/{atmosphere,sanity,entities,interaction,bridge,inventory,admin,utils}`, `locales/`, `web/`.
+- **MBT modular pattern** — `core/`, `modules/{atmosphere,sanity,entities,exits,artifacts,almondwater,light,archive,hud,interaction,bridge,inventory,admin,utils}`, `locales/`, `web/`.
 
 ### Localization
 Built-in translations for **English, Italian, Spanish**. Add your own by dropping a file in `locales/`.
@@ -104,6 +119,8 @@ MBT.ExitRules = {
     default = { surface = 30, backroom = 70 },
     -- [1] = { surface = 5, backroom = 95 }, -- override a specific exit point
 }
+
+MBT.OnDeathReturnSurface = true  -- die inside -> respawn on the surface (false = let a framework medical system handle it)
 
 MBT.Coords          = { --[[ interior spawn per level ]] }
 MBT.RandomExitPoint = { --[[ surface points you can be spit back out to ]] }
@@ -168,6 +185,7 @@ MBT.Sanity = {
     RegenOnSurface = 25,   -- recovery/min on the surface
     LowThreshold      = 50, -- vignette starts ramping below this
     CriticalThreshold = 20, -- shake / heavy distortion below this
+    FullThreshold     = 98, -- Almond Water won't drink at/above this (no waste)
     PersistAcrossSessions = false, -- needs the framework bridge (2.1)
 }
 ```
@@ -194,9 +212,88 @@ MBT.Entities = {
 }
 ```
 
+### Curated exits & soft pull-in
+
+```lua
+MBT.CuratedExits = {
+    Enabled        = true,
+    ActivePerVisit = 2,    -- how many pool entries are live each visit
+    TellRange      = 9.0,  -- start sensing within this distance (m)
+    Pool = { [1] = { { coords = vector3(...), radius = 1.6, dest = 'surface' } } }, -- per level
+}
+MBT.SoftPullIn = {
+    Enabled    = true,
+    DurationMs = 3000,     -- linger this long inside to be pulled through
+    Ptfx = { Enabled = true, Dict = 'core', Name = 'env_dust_devil_urban_lrg', StartAt = 0.1 },
+}
+```
+
+### Almond Water & torch
+
+```lua
+MBT.AlmondWater = {
+    Enabled = true, SpawnPerVisit = 2, PickupRange = 1.8, SanityRestore = 35,
+    Anim = { dict = 'mp_player_intdrink', clip = 'loop_bottle' }, UseTime = 2500,
+    Pool = { [1] = { { coords = vector3(...) } } }, -- per level
+}
+MBT.Light = {
+    Enabled = true, Key = 'F',
+    Mode = 'spotlight',     -- 'spotlight' (drawn, drop-in safe) | 'weapon' (WEAPON_FLASHLIGHT)
+    DarkDecayMult = 1.5,    -- ×sanity decay when the torch is OFF
+    LightEntityMult = 1.6,  -- ×entity chance when the torch is ON (light attracts)
+}
+-- Level darkness is a linear NUI gloom (so the torch matters):
+MBT.Atmosphere.Darkness = { Enabled = true, Strength = 0.45 } -- 0 = off .. 1 = very dark
+```
+
+### Found tapes, Archive & Research Mode
+
+```lua
+MBT.Artifacts = {
+    Enabled = true, SpawnPerVisit = 2, PickupRange = 1.8,
+    PropModelByType = { log = 'prop_notepad_01', tape = 'm23_2_prop_m32_cassette_01a' },
+    PickupAnim = { dict = 'anim@mp_snowball', clip = 'pickup_snowball', time = 900 },
+    Pool = { [1] = { { id = 'tape04', category = 'exits', type = 'tape', text = "..." } } },
+}
+
+MBT.Archive = {
+    Enabled = true,
+    Prop = 'xm_prop_x17_tv_flat_01',  -- a render-target-capable screen prop
+    RenderTarget = 'tv_flat_01',      -- must match the prop's screen RT name
+    Camera = { dist = 1.8, side = -1.0, aimZ = 1.1, height = 1.1, fov = 42.0 }, -- [E] framing
+    Screen = { offX = 0.0, offY = 0.04, offZ = 0.0, w = 1.05, h = 0.6 },        -- NUI projection rect
+    ResearchMode = {
+        Enabled = true,
+        Hints = { exits = { { at = 1, text = "..." } }, --[[ entity, geometry, personnel, contamination ]] },
+        ExitLiteracy = { Enabled = true, [1] = { rangeBonus = 1.0, tellMult = 1.1 } },
+    },
+}
+```
+> Place the terminal in-game: `/brsetarchive` opens a popup to position the TV + tune the camera and the on-screen rect live; it persists server-side (KVP). Use a prop whose screen render target is known (e.g. `prop_tv_flat_02` → `tvscreen`).
+
+### HUD
+
+```lua
+MBT.HUD = {
+    Enabled    = true,
+    TorchHint  = true,   -- show the "[F] torch" key hint while inside a level
+    ShowSanity = false,  -- opt-in stylized (non-numeric) sanity signal
+}
+```
+
 ### Notifications
 
-`modules/bridge/` auto-detects your framework. Notifications route through **ESX**, **ox_lib**, **QBCore**, **QBox**, or a native fallback with no extra setup.
+One config-driven function — wire your stack **once**:
+
+```lua
+MBT.Notification = function(data) -- { title?, description, type?, duration? }
+    -- native GTA feed by default; uncomment your stack's preset:
+    -- exports.ox_lib:notify({ title = data.title, description = data.description, type = data.type })
+    -- ESX.ShowNotification(data.description)  ·  QBCore.Functions.Notify(data.description)
+    -- exports.mbt_visual:notify({ ... })      -- our own notification system
+end
+```
+> The framework bridge still **auto-detects** ESX / ox_lib / QBCore / QBox / standalone; notifications just no longer live in it.
 
 ---
 
@@ -209,8 +306,18 @@ MBT.Entities = {
 | `/brfall` | Simulate a fall-through entry |
 | `/brenter` | Force-enter a random backroom |
 | `/brexit` | Force an exit roll |
-| `/brhere` | Print your current coords (for placing points/zones) |
+| `/brhere` | Print your current coords + a paste-ready entry (for placing points/zones) |
 | `/brtc` | Cycle timecycle variants to preview them |
+| `/brtorch` | Toggle the torch |
+| `/brglimpse` | Force an entity glimpse now |
+| `/brexits` · `/brartifacts` · `/bralmond` | List + marker the active curated exits / tapes / Almond Water |
+| `/brarchivedemo` | Power on the archive TV with every tape/note (preview the populated screen) |
+
+### Archive placement (`MBT.Debug` or ACE `mbt_backrooms.admin`)
+
+| Command | Action |
+|---|---|
+| `/brsetarchive` | Open the placement popup: position the TV + tune the camera & on-screen rect live; persists server-side (KVP) |
 
 ### Admin (ACE permission `mbt_backrooms.admin`)
 
@@ -242,6 +349,15 @@ Add coords to `MBT.Coords` and matching Enter/Exit points to `MBT.BackRooms`. Us
 
 **Q: The entity never appears.**
 Glimpses are gated behind low sanity (`MinSanityGate`), a cooldown, and a roll (`Chance`). Lower your sanity (stay inside, alone) or relax those values for testing.
+
+**Q: What are the tapes for?**
+They're the reward loop. Find tapes/logs inside, carry them out to "recover" them, then review your collection on the **archive terminal** on the surface — and (with Research Mode) unlock diegetic field notes as you recover more.
+
+**Q: How do I place the archive TV?**
+Run `/brsetarchive` (admin or `MBT.Debug`): a popup lets you position the prop and tune the camera + on-screen rect live, then **Save** — it persists server-side. The TV prop must have a screen render target (e.g. `prop_tv_flat_02` → `tvscreen`, or the x17 flat → `tv_flat_01`).
+
+**Q: The exits are invisible — is that a bug?**
+No — curated exits are *meant* to be unmarked. A screen/audio tell grows as you approach; linger inside to be pulled through. Enable `MBT.Debug` for markers + `/brexits` while placing them.
 
 ---
 

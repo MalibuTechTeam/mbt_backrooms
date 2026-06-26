@@ -1,7 +1,7 @@
--- Archive (Section 10): a TV terminal that plays your recovered tapes/logs as a DUI
--- on its screen via a RENDER TARGET (the mbt_shooting pattern). The transform is
--- placed in-game (/brsetarchive popup) and synced from the server (KVP). Walk up ->
--- [E] frames the screen and loads your archive onto it; [E]/Backspace exits.
+-- Archive (Section 10): a surface TV terminal for recovered tapes/logs. The screen prop
+-- is a flat-black render target; [E] frames it with a scripted cam and projects a CRISP
+-- NUI onto the screen (World3dToScreen2d) with a CRT on/off. Transform placed in-game
+-- (/brsetarchive popup) + synced from the server (KVP). [E]/Backspace exits.
 
 local cfg = MBT.Archive
 local aCfg = MBT.Artifacts

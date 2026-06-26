@@ -12,8 +12,8 @@
   color: rgba(225, 230, 215, 0.95);
 }
 
-/* DUI/TV mode: opaque bg + near-full-bleed panel, and MUCH larger/brighter type so
-   it reads on a screen viewed from a distance (the panel sizes were for close NUI). */
+/* TV-screen mode: opaque bg + near-full-bleed panel, and MUCH larger/brighter type so
+   it reads on a screen viewed from a distance (vw units scale with the panel). */
 /* CRT power on/off: the screen snaps to a bright line then expands (on), or
    collapses to a line then a dot (off). transform-origin center; black behind. */
 @keyframes arc-crt-on {
