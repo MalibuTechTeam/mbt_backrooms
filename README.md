@@ -382,7 +382,7 @@ No — curated exits are *meant* to be unmarked. A screen/audio tell grows as yo
 
 ## Credits
 
-Developed by **Malibu Tech Team**. Originally created by **DarkSideofTheCode** — this 2.0 carries his work forward. 🕯️
+The original **mbt_backrooms** (v1, 2022) was created by **DarkSideofTheCode**, co-founder of Malibu Tech. This 2.0 "Liminal" is **Moldrok** carrying his brother's legacy forward, in his memory. 🕯️
 
 - **Maps** — by **Iakko** (MalibuTech). *Want to contribute a level? Mappers are welcome and get credited here.*
 - **Entity peds** — bundled from gta5-mods, credit-only license:
