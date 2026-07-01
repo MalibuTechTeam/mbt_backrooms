@@ -26,7 +26,7 @@ MBT.Notification = function(data)
     -- QBCore:
     -- QBCore.Functions.Notify(data.description or data.title, data.type or 'primary')
     
-    -- mbt_visual (our own notification system):
+    -- mbt_visual:
     -- exports.mbt_visual:notify({ title = data.title, description = data.description, type = data.type or 'inform', duration = data.duration or 5000 })
 end
 
@@ -48,13 +48,9 @@ MBT.ExitRules = {
 -- servers whose medical/hospital system should own the respawn instead.
 MBT.OnDeathReturnSurface = true
 
--- Interior spawn coords, one per level.
-MBT.Coords = {
-    vector3(1026.88, 801.66, 25.88),   -- lvl_01 Iakko
-    vector3(1780.18, -274.04, 20.66),  -- lvl_02 Iakko
-    vector3(356.42, 5530.52, 14.37),   -- lvl_03 Iakko
-    vector3(-2284.94, 1432.59, 81.70)  -- lvl_04 Iakko
-}
+-- Interior spawn + per-level content (exits / tapes / almond) are authored TOGETHER,
+-- one block per level, in MBT.Levels (bottom of file — that's where you add a level and
+-- paste /brhere coords). MBT.Coords and the per-feature Pools are derived from it there.
 
 -- Surface points a player can be spit back out to on escape.
 MBT.RandomExitPoint = {
@@ -219,24 +215,7 @@ MBT.CuratedExits = {
     Enabled        = true,
     ActivePerVisit = 2,    -- pool entries live each entry
     TellRange      = 9.0,  -- start sensing within this distance (m)
-    Pool = {
-        [1] = { -- small ~16m room: exits N, pickups S
-            { coords = vector3(1025.84, 807.09, 25.9), radius = 1.6, dest = 'surface'  },
-            { coords = vector3(1015.84, 807.09, 25.9), radius = 1.6, dest = 'backroom' },
-        },
-        [2] = {
-            { coords = vector3(1792.18, -266.04, 20.7), radius = 1.6, dest = 'surface'  },
-            { coords = vector3(1768.18, -282.04, 20.7), radius = 1.6, dest = 'backroom' },
-        },
-        [3] = { -- big room
-            { coords = vector3(370.4, 5540.5, 14.4), radius = 1.6, dest = 'surface'  },
-            { coords = vector3(342.4, 5520.5, 14.4), radius = 1.6, dest = 'backroom' },
-        },
-        [4] = {
-            { coords = vector3(-2298.88, 1441.96, 81.7), radius = 1.6, dest = 'surface'  },
-            { coords = vector3(-2276.88, 1419.96, 81.7), radius = 1.6, dest = 'backroom' },
-        },
-    },
+    -- Per-level exits authored in MBT.Levels (bottom of file) as `exits`; Pool derived there.
 }
 
 -- Soft pull-in: linger inside an active exit and a warp builds over DurationMs, then
@@ -279,25 +258,7 @@ MBT.Artifacts = {
     PickupAnim = { dict = 'anim@mp_snowball', clip = 'pickup_snowball', time = 900 },
     -- `id` is a stable unique key; `category` feeds the Archive's per-category
     -- confidence (entity | exits | personnel | geometry | contamination).
-    Pool = {
-        [1] = {
-            { id = 'tape04', category = 'geometry',      coords = vector3(1024.84, 795.09, 25.9), type = 'tape', text = "TAPE 04 — \"the lights hum in B-flat. counted 1,400 before i stopped.\"" },
-            { id = 'note01', category = 'exits',         coords = vector3(1016.84, 795.09, 25.9), type = 'log',  text = "NOTE — \"don't go back the way you came. it isn't there anymore.\"" },
-            { id = 'tape09', category = 'exits',         coords = vector3(1020.84, 793.50, 25.9), type = 'tape', text = "TAPE 09 — \"found a door. almond water on the other side. i think.\"" },
-        },
-        [2] = {
-            { id = 'memo01', category = 'entity',        coords = vector3(1770.18, -264.04, 20.7), type = 'log',  text = "MEMO — \"the walls are warm here. that means something is awake.\"" },
-            { id = 'tape12', category = 'entity',        coords = vector3(1790.18, -284.04, 20.7), type = 'tape', text = "TAPE 12 — \"i keep hearing my own footsteps a half-second late.\"" },
-        },
-        [3] = {
-            { id = 'tape02', category = 'personnel',     coords = vector3(344.4, 5542.5, 14.4), type = 'tape', text = "TAPE 02 — \"if you're watching this, i never made it back. keep moving.\"" },
-            { id = 'note02', category = 'exits',         coords = vector3(368.4, 5518.5, 14.4), type = 'log',  text = "NOTE — \"the exits move. learn the hum, not the map.\"" },
-        },
-        [4] = {
-            { id = 'page07', category = 'entity',        coords = vector3(-2278.88, 1439.96, 81.7), type = 'log',  text = "PAGE 7 — \"day 19. the smiling one only moves when i blink.\"" },
-            { id = 'tape17', category = 'contamination', coords = vector3(-2296.88, 1421.96, 81.7), type = 'tape', text = "TAPE 17 — \"there's a pool. it's the only warm sound left.\"" },
-        },
-    },
+    -- Per-level tapes/logs authored in MBT.Levels (bottom of file) as `tapes`; Pool derived there.
 }
 
 -------------------------------------------------------------------------------
@@ -316,24 +277,7 @@ MBT.AlmondWater = {
     UseTime  = 2500,
     Anim     = { dict = 'mp_player_intdrink', clip = 'loop_bottle' },
     HeldProp = { model = 'prop_ld_flow_bottle', pos = vector3(0.03, 0.03, 0.02), rot = vector3(0.0, 0.0, -1.5) },
-    Pool = {
-        [1] = {
-            { coords = vector3(1022.84, 796.09, 25.9) },
-            { coords = vector3(1018.84, 796.09, 25.9) },
-        },
-        [2] = {
-            { coords = vector3(1776.18, -270.04, 20.7) },
-            { coords = vector3(1784.18, -278.04, 20.7) },
-        },
-        [3] = {
-            { coords = vector3(360.4, 5534.5, 14.4) },
-            { coords = vector3(352.4, 5526.5, 14.4) },
-        },
-        [4] = {
-            { coords = vector3(-2284.88, 1427.96, 81.7) },
-            { coords = vector3(-2290.88, 1433.96, 81.7) },
-        },
-    },
+    -- Per-level bottle coords authored in MBT.Levels (bottom of file) as `almond`; Pool derived there.
 }
 
 -------------------------------------------------------------------------------
@@ -410,3 +354,88 @@ MBT.Archive = {
         },
     },
 }
+
+-------------------------------------------------------------------------------
+-- [ SECTION 11: LEVELS — author each level in ONE place ] --
+-------------------------------------------------------------------------------
+
+-- Everything that is PER-LEVEL and PLACED lives here, one block per level. To add a
+-- level Iakko ships, append a new [N] block below and paste the /brhere coords — the
+-- builder at the bottom derives MBT.Coords + the CuratedExits/Artifacts/AlmondWater
+-- Pools from it, so the modules need no changes. Keep indices contiguous (1..N).
+--   spawn  = interior spawn point (vector3)
+--   exits  = curated exits: { coords, dest = 'surface'|'backroom', radius? (default 1.6) }
+--   tapes  = found tapes/logs: { id, category, type = 'tape'|'log', coords, text }
+--            category feeds Archive confidence: entity|exits|personnel|geometry|contamination
+--   almond = Almond Water bottles: just a list of vector3
+-- Coords below come from Iakko's ymaps — VERIFY/replace in-game with /brhere.
+MBT.Levels = {
+    [1] = {
+        spawn = vector3(1026.88, 801.66, 25.88),
+        exits = {
+            { coords = vector3(1025.84, 807.09, 25.9), dest = 'surface'  },
+            { coords = vector3(1015.84, 807.09, 25.9), dest = 'backroom' },
+        },
+        tapes = {
+            { id = 'tape04', category = 'geometry', type = 'tape', coords = vector3(1024.84, 795.09, 25.9), text = "TAPE 04 — \"the lights hum in B-flat. counted 1,400 before i stopped.\"" },
+            { id = 'note01', category = 'exits',    type = 'log',  coords = vector3(1016.84, 795.09, 25.9), text = "NOTE — \"don't go back the way you came. it isn't there anymore.\"" },
+            { id = 'tape09', category = 'exits',    type = 'tape', coords = vector3(1020.84, 793.50, 25.9), text = "TAPE 09 — \"found a door. almond water on the other side. i think.\"" },
+        },
+        almond = { vector3(1022.84, 796.09, 25.9), vector3(1018.84, 796.09, 25.9) },
+    },
+    [2] = {
+        spawn = vector3(1780.18, -274.04, 20.66),
+        exits = {
+            { coords = vector3(1792.18, -266.04, 20.7), dest = 'surface'  },
+            { coords = vector3(1768.18, -282.04, 20.7), dest = 'backroom' },
+        },
+        tapes = {
+            { id = 'memo01', category = 'entity', type = 'log',  coords = vector3(1770.18, -264.04, 20.7), text = "MEMO — \"the walls are warm here. that means something is awake.\"" },
+            { id = 'tape12', category = 'entity', type = 'tape', coords = vector3(1790.18, -284.04, 20.7), text = "TAPE 12 — \"i keep hearing my own footsteps a half-second late.\"" },
+        },
+        almond = { vector3(1776.18, -270.04, 20.7), vector3(1784.18, -278.04, 20.7) },
+    },
+    [3] = {
+        spawn = vector3(356.42, 5530.52, 14.37),
+        exits = {
+            { coords = vector3(370.4, 5540.5, 14.4), dest = 'surface'  },
+            { coords = vector3(342.4, 5520.5, 14.4), dest = 'backroom' },
+        },
+        tapes = {
+            { id = 'tape02', category = 'personnel', type = 'tape', coords = vector3(344.4, 5542.5, 14.4), text = "TAPE 02 — \"if you're watching this, i never made it back. keep moving.\"" },
+            { id = 'note02', category = 'exits',     type = 'log',  coords = vector3(368.4, 5518.5, 14.4), text = "NOTE — \"the exits move. learn the hum, not the map.\"" },
+        },
+        almond = { vector3(360.4, 5534.5, 14.4), vector3(352.4, 5526.5, 14.4) },
+    },
+    [4] = {
+        spawn = vector3(-2284.94, 1432.59, 81.70),
+        exits = {
+            { coords = vector3(-2298.88, 1441.96, 81.7), dest = 'surface'  },
+            { coords = vector3(-2276.88, 1419.96, 81.7), dest = 'backroom' },
+        },
+        tapes = {
+            { id = 'page07', category = 'entity',        type = 'log',  coords = vector3(-2278.88, 1439.96, 81.7), text = "PAGE 7 — \"day 19. the smiling one only moves when i blink.\"" },
+            { id = 'tape17', category = 'contamination', type = 'tape', coords = vector3(-2296.88, 1421.96, 81.7), text = "TAPE 17 — \"there's a pool. it's the only warm sound left.\"" },
+        },
+        almond = { vector3(-2284.88, 1427.96, 81.7), vector3(-2290.88, 1433.96, 81.7) },
+    },
+}
+
+-- Builder: derives the tables the modules read from MBT.Levels above. Don't edit —
+-- add levels in MBT.Levels, not here. Runs on both sides (config is a shared_script).
+MBT.Coords = {}
+MBT.CuratedExits.Pool = {}
+MBT.Artifacts.Pool = {}
+MBT.AlmondWater.Pool = {}
+for i, lv in pairs(MBT.Levels) do
+    MBT.Coords[i] = lv.spawn
+    local exits = {}
+    for _, e in ipairs(lv.exits or {}) do
+        exits[#exits + 1] = { coords = e.coords, radius = e.radius or 1.6, dest = e.dest or 'backroom' }
+    end
+    MBT.CuratedExits.Pool[i] = exits
+    MBT.Artifacts.Pool[i] = lv.tapes or {}
+    local aw = {}
+    for _, c in ipairs(lv.almond or {}) do aw[#aw + 1] = { coords = c } end
+    MBT.AlmondWater.Pool[i] = aw
+end
