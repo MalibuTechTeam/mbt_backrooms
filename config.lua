@@ -5,7 +5,11 @@ MBT = MBT or {}
 -------------------------------------------------------------------------------
 
 MBT.Language = 'en'  -- 'en' | 'it' | 'es' (add your own in locales/)
-MBT.Debug    = false  -- MBTLog.Debug output + debug commands + zone markers
+MBT.Debug    = false  -- MBTLog.Debug output + debug commands (markers: MBT.DebugMarkers)
+-- Placement markers (exit=amber · artifact=cyan · almond=pale · no-clip zone). Only draw
+-- when Debug is on; set false to keep the /br* commands + logs but HIDE the markers —
+-- clean for filming the trailer or testing without visual clutter.
+MBT.DebugMarkers = true
 
 MBT.General = {
     InteractKey = 'E', -- pass through Enter points / pick up / drink

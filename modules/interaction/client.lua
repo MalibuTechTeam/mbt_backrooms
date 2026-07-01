@@ -22,7 +22,7 @@ end
 -- DEBUG-ONLY marker (for placing/testing zones). No-clip spots are meant to be
 -- invisible in production — markers never render unless MBT.Debug is on.
 CreateThread(function()
-    if not MBT.Debug or #zones == 0 then return end
+    if not MBT.Debug or MBT.DebugMarkers == false or #zones == 0 then return end
     while true do
         local sleep = 1000
         local pc = GetEntityCoords(PlayerPedId())

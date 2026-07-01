@@ -178,7 +178,7 @@ if MBT.Debug then
             if type(exits) == 'table' and #exits > 0 then
                 local pc = GetEntityCoords(PlayerPedId())
                 for _, e in ipairs(exits) do
-                    if #(pc - vector3(e.x, e.y, e.z)) < 60.0 then
+                    if MBT.DebugMarkers ~= false and #(pc - vector3(e.x, e.y, e.z)) < 60.0 then
                         sleep = 0
                         local r = e.r or 1.6
                         DrawMarker(1, e.x, e.y, e.z - 0.95, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
