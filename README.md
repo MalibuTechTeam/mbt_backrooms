@@ -1,25 +1,43 @@
-<div id="header" align="center">
-  <img src="https://dunb17ur4ymx4.cloudfront.net/wysiwyg/1041307/9018255e7ba2a27c016b4c86db6b38b27e843215.png" width="500"/>
-</div>
+# Backrooms Project — Liminal Horror MLO for FiveM
 
----
+<p align="center">
+  <img src="https://img.shields.io/badge/FiveM-Ready-00e676?style=for-the-badge&logo=fivem&logoColor=white" alt="FiveM Ready" />
+  <img src="https://img.shields.io/badge/Type-MLO%20Interior-blue?style=for-the-badge" alt="Type" />
+  <img src="https://img.shields.io/badge/Price-Free-brightgreen?style=for-the-badge" alt="Price" />
+  <img src="https://img.shields.io/badge/License-PolyForm%20Noncommercial%201.0.0-blue?style=for-the-badge" alt="License" />
+</p>
 
-At the moment we have created 4 levels of backrooms that we have placed around the map, there are 2 ways to access the backrooms, the first, as we are told by the stories we should glitch and fall under the map, (the script that will manage the entrances and exits from the backrooms, has been designed to intervene only when you fall under the map and not when you fall from great heights like the palaces). The second way to access the backrooms will be to find random points also located around the map.
-The backrooms project has been designed to be as faithful as possible to the stories.
-Which is why the exit points that are inside the backrooms have a 70% that you are teleported back into other backrooms.
+<p align="center">
+  <img src="https://dunb17ur4ymx4.cloudfront.net/packages/images/824f127b2432767bde2afa0b13e1443ca0e03b12.png" alt="Backrooms Project" width="700" />
+</p>
 
-Made this small premise, our goal for the backrooms project is to involve as many fivem mappers as possible with their works so as to create more and more levels to add to the project, all creators will also be added to the project credits.
+**Backrooms Project** brings a faithful liminal horror experience to FiveM: four distinct custom MLO levels connected by a dedicated access and teleport system, for exploration, survival and event roleplay.
 
+## Requirements
 
+- FiveM server (OneSync recommended)
+- No framework required — works on ESX, QBCore, QBox, OX and standalone
 
+## Installation
 
-## Features
+1. Download the resource and place it in your `resources` folder
+2. Add it to your `server.cfg`:
+   ```cfg
+   ensure mbt_backrooms
+   ```
+3. Restart the server
 
-- Showcase: [Click Here](https://www.youtube.com/watch?v=C67E0esj1zk&t=74s)
+## Media
 
-![image](https://user-images.githubusercontent.com/63969450/180204052-0ec5d05f-ce78-4fa7-bb3d-e30d70eae7ea.png)
+- 🎥 **Showcase:** [YouTube](https://www.youtube.com/watch?v=C67E0esj1zk)
+- 📦 **Backrooms Project on MalibuTech:** [malibutechteam.com](https://malibutechteam.com/maps/5345681)
+- 💬 **Support & previews:** [MalibuTech Discord](https://discord.gg/6scYba9AMy)
 
-## DMCA Protection Certificate
-![image](https://cdn.discordapp.com/attachments/1045063739738705940/1045095793050267769/image.png)
+## License
 
-##### Copyright © 2022 Malibú Tech. All rights reserved.
+Licensed under the PolyForm Noncommercial License 1.0.0. Free to use and modify for
+**noncommercial purposes only** — personal use, hobby servers, research and education.
+Commercial use, redistribution for profit, or inclusion in paid products requires written
+permission from Malibu Tech Team.
+
+Copyright © 2022-2026 MalibuTech. All rights reserved.
