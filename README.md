@@ -395,6 +395,6 @@ The original **mbt_backrooms** (v1, 2022) was created by **DarkSideofTheCode**, 
 
 ## License
 
-Free for noncommercial use — personal use, hobby servers, and community servers. Redistribution for profit or inclusion in paid products is prohibited without written permission from Malibu Tech Team. Bundled third-party assets (entity peds, audio) remain under their original licenses — keep the credits above intact.
+**[PolyForm Noncommercial License 1.0.0](LICENSE.md)** — free to use, modify, and share for any **noncommercial** purpose (personal use, hobby servers, community projects). **Reselling, redistributing for profit, or bundling it into a paid product is not permitted.** Keep the `Required Notice: Copyright Malibu Tech Team` and the credits above intact. Bundled third-party assets (entity peds, audio) remain under their original licenses.
 
-##### Copyright © 2022–2026 Malibú Tech. All rights reserved.
+##### Copyright © 2022–2026 Malibu Tech Team.
