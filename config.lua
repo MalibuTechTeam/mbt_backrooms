@@ -219,7 +219,7 @@ MBT.Hallucinations = {
 MBT.Mimic = {
     Enabled     = true,
     Chance      = 25,   -- % of encounters that are a Mimic instead of a glimpse
-    Models      = { 's_m_y_dealer_01', 'a_m_m_hillbilly_01', 'g_m_y_lost_01', 'a_m_y_stwhi_01' },
+    Models      = { 'mp_m_freemode_01', 'mp_f_freemode_01' }, -- freemode = looks like a real player (random outfit)
     RevealRange = 6.0,  -- approach within this -> it reveals (jolt + sanity hit + lunge)
     LingerSec   = 12,   -- if you don't approach, it turns and WALKS AWAY after this
 }

@@ -290,8 +290,9 @@ end
 -- reality-jolt + sanity hit + a lunge — then it vanishes. A variant of the glimpse.
 local function spawnMimic()
     local mc = MBT.Mimic
-    local models = (mc and mc.Models) or cfg.Models
+    local models = (mc and mc.Models) or { 'mp_m_freemode_01', 'mp_f_freemode_01' }
     local model = models[math.random(1, #models)]
+    local isFreemode = (model == 'mp_m_freemode_01' or model == 'mp_f_freemode_01')
     local hash = joaat(model)
     if not IsModelInCdimage(hash) then MBTLog.Warn('mimic: model not in cdimage', model); return end
     RequestModel(hash)
@@ -309,7 +310,17 @@ local function spawnMimic()
     activePed = CreatePed(4, hash, spawn.x, spawn.y, spawn.z, 0.0, false, false)
     SetModelAsNoLongerNeeded(hash)
     SetEntityAsMissionEntity(activePed, true, true)
-    SetPedDefaultComponentVariation(activePed)
+    -- Dress it like a real player: a random (valid) outfit, de-costumed so nothing
+    -- screams "NPC" — no mask, no hat/helmet, no glasses. (Codex: look exactly like
+    -- a player; the wrongness comes from behavior + the reveal, not the model.)
+    if isFreemode then
+        SetPedRandomComponentVariation(activePed, 0)
+        SetPedComponentVariation(activePed, 1, 0, 0, 2) -- component 1 = mask -> none
+        ClearPedProp(activePed, 0)                      -- prop 0 = hat/helmet
+        ClearPedProp(activePed, 1)                      -- prop 1 = glasses
+    else
+        SetPedDefaultComponentVariation(activePed)
+    end
     SetEntityInvincible(activePed, true)
     SetEntityCanBeDamaged(activePed, false)
     SetBlockingOfNonTemporaryEvents(activePed, true)
