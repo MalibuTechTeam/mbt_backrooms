@@ -267,13 +267,17 @@ CreateThread(function()
         local sleep = 4000
         if LocalPlayer.state['mbt_backrooms:inLevel'] and not activePed then
             local sanity = LocalPlayer.state['mbt_backrooms:sanity'] or 100
+            -- Haunt Deck: this visit's director tunes aggression + cadence.
+            local haunt = LocalPlayer.state['mbt_backrooms:haunt']
+            local aggr   = (haunt and haunt.entityAggression) or 1.0
+            local cdMult = (haunt and haunt.entityCooldownMult) or 1.0
             -- "Light attracts": torch ON raises the glimpse chance (F4 tension).
-            local chance = cfg.Chance or 50
+            local chance = (cfg.Chance or 50) * aggr
             if MBT.Light and MBT.Light.Enabled and LocalPlayer.state['mbt_backrooms:torch'] then
                 chance = chance * (MBT.Light.LightEntityMult or 1.0)
             end
             if sanity < (cfg.MinSanityGate or 50)
-                and (GetGameTimer() - lastGlimpse) > (cfg.CooldownSec or 90) * 1000
+                and (GetGameTimer() - lastGlimpse) > (cfg.CooldownSec or 90) * cdMult * 1000
                 and math.random(1, 100) <= chance then
                 lastGlimpse = GetGameTimer()
                 spawnGlimpse()
@@ -302,5 +306,16 @@ if MBT.Debug then
         else
             MBTLog.Debug('brglimpse: must be inside a level (and none active)')
         end
+    end, false)
+
+    -- Debug: print this visit's Haunt Deck (which cards drew + the merged multipliers).
+    RegisterCommand('brhaunt', function()
+        local h = LocalPlayer.state['mbt_backrooms:haunt']
+        if type(h) ~= 'table' or not h.entityAggression then
+            MBTLog.Debug('brhaunt: no haunt (must be inside a level)'); return
+        end
+        MBTLog.Debug(('brhaunt: cards=%s | aggr=%.2f cd=%.2f sanity=%.2f false=%.2f silence=%.2f light=%.2f')
+            :format(table.concat(h.cards or {}, '+'), h.entityAggression or 1, h.entityCooldownMult or 1,
+                h.sanitySensitivity or 1, h.falseFreq or 1, h.silence or 1, h.lightInstability or 1))
     end, false)
 end

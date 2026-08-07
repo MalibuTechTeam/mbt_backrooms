@@ -8,6 +8,7 @@ local STATE_INLEVEL = 'mbt_backrooms:inLevel'   -- false (outside) | level index
 local STATE_ENTRY   = 'mbt_backrooms:entryTime' -- GetGameTimer() at entry | false
 local STATE_LOCKED  = 'mbt_backrooms:exitLocked'-- true while a transition is mid-flight
 local STATE_EXITS   = 'mbt_backrooms:activeExits'-- per-visit active curated exits (server-picked)
+local STATE_HAUNT   = 'mbt_backrooms:haunt'     -- per-visit director multipliers (Haunt Deck)
 
 local REQUEST_COOLDOWN = 500   -- ms (~2 requests/second/player)
 local UNLOCK_SAFETY    = 8000  -- ms — clear a stuck lock (must exceed worst-case client teleport path)
@@ -117,6 +118,35 @@ local function activateExits(src, level)
         active[#active + 1] = { i = idx[k], x = e.coords.x, y = e.coords.y, z = e.coords.z, r = e.radius or 1.6 }
     end
     Player(src).state:set(STATE_EXITS, active, true)
+end
+
+-- Haunt Deck (director): draw DrawPerVisit distinct cards and multiply their
+-- multipliers into one table. Every client system reads mbt_backrooms:haunt so each
+-- visit is composed differently. Neutral (all 1.0) when disabled/no cards.
+local HAUNT_KEYS = { 'entityAggression', 'entityCooldownMult', 'sanitySensitivity', 'falseFreq', 'silence', 'lightInstability' }
+local function rollHaunt(src)
+    local hd = MBT.HauntDeck
+    local haunt = {}
+    for _, k in ipairs(HAUNT_KEYS) do haunt[k] = 1.0 end
+    if hd and hd.Enabled and hd.Cards then
+        local names = {}
+        for name in pairs(hd.Cards) do names[#names + 1] = name end
+        for i = #names, 2, -1 do -- Fisher–Yates
+            local j = math.random(1, i)
+            names[i], names[j] = names[j], names[i]
+        end
+        local draw = math.min(hd.DrawPerVisit or 2, #names)
+        local picked = {}
+        for k = 1, draw do
+            picked[#picked + 1] = names[k]
+            for key, mult in pairs(hd.Cards[names[k]]) do
+                haunt[key] = (haunt[key] or 1.0) * mult
+            end
+        end
+        haunt.cards = picked -- for debug / telemetry (which cards this visit drew)
+    end
+    Player(src).state:set(STATE_HAUNT, haunt, true)
+    if MBT.Debug then Utils.MbtDebugger('haunt rolled', src, table.concat(haunt.cards or {}, '+')) end
 end
 
 -- No-clip zone state per player: { zone, passed } (passed=false means the
@@ -275,6 +305,7 @@ RegisterNetEvent('mbt_backrooms:teleportDone', function(token)
         state:set(STATE_INLEVEL, p.level, true)
         state:set(STATE_ENTRY, GetGameTimer(), true)
         activateExits(src, p.level) -- fresh curated exits for this visit
+        rollHaunt(src)              -- fresh director cards for this visit
         -- Debug-only: exercise the notification path.
         if MBT.Debug then
             Utils.Notify(src, (MBT.Locale and MBT.Locale.notify_entered) or 'Entered the Backrooms')
@@ -283,6 +314,7 @@ RegisterNetEvent('mbt_backrooms:teleportDone', function(token)
         state:set(STATE_INLEVEL, false, true)
         state:set(STATE_ENTRY, false, true)
         state:set(STATE_EXITS, {}, true) -- no curated exits on the surface
+        state:set(STATE_HAUNT, {}, true) -- clear the director on the surface
     end
 end)
 

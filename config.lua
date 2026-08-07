@@ -169,6 +169,26 @@ MBT.PlayerContact = {
     Sound       = true, -- play the entry sting on contact
 }
 
+-- Haunt Deck (the "director"): each visit the SERVER draws `DrawPerVisit` cards and
+-- merges their multipliers into the replicated `mbt_backrooms:haunt` state bag. Every
+-- client system reads it, so no two visits feel the same (the anti-repetition moat).
+-- All multipliers default to 1.0 (neutral); a card only sets the keys it bends:
+--   entityAggression   ×glimpse chance      entityCooldownMult ×time between glimpses
+--   sanitySensitivity  ×sanity decay        falseFreq          ×hallucination rate (WIP)
+--   silence            ×dynamic-silence odds lightInstability   ×flicker (WIP)
+MBT.HauntDeck = {
+    Enabled      = true,
+    DrawPerVisit = 2, -- how many cards combine each visit
+    Cards = {
+        hungry   = { entityAggression = 1.6, entityCooldownMult = 0.6, lightInstability = 1.3 },
+        patient  = { entityAggression = 0.6, falseFreq = 1.6 },
+        silent   = { silence = 2.0, entityAggression = 1.2 },
+        paranoid = { falseFreq = 2.2, sanitySensitivity = 1.25 },
+        crowded  = { falseFreq = 1.5, silence = 0.6 },
+        still    = { silence = 1.5, falseFreq = 0.7, entityAggression = 0.8 },
+    },
+}
+
 -------------------------------------------------------------------------------
 -- [ SECTION 5: ENTITIES ] --
 -------------------------------------------------------------------------------

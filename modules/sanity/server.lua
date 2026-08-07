@@ -77,6 +77,9 @@ if cfg.Enabled then
                     if MBT.Light and MBT.Light.Enabled and not Player(src).state['mbt_backrooms:torch'] then
                         decay = decay * (MBT.Light.DarkDecayMult or 1.0)
                     end
+                    -- Haunt Deck: this visit's director can amplify/soften the erosion.
+                    local haunt = Player(src).state['mbt_backrooms:haunt']
+                    if haunt and haunt.sanitySensitivity then decay = decay * haunt.sanitySensitivity end
                     set(src, get(src) - decay)
                 else
                     local cur = get(src)
