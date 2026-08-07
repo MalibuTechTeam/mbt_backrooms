@@ -50,6 +50,7 @@ client_scripts {
   'modules/sanity/client.lua',
   'modules/entities/client.lua',
   'modules/contact/client.lua',
+  'modules/hallucinations/client.lua',
   'core/client.lua'
 }
 

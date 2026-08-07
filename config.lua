@@ -197,6 +197,35 @@ MBT.DynamicSilence = {
     Chance  = 55, -- % of glimpses preceded by silence (×haunt.silence)
 }
 
+-- Sanity Reality Errors: at low sanity, HARMLESS false events — a fleeting silhouette
+-- or a phantom sound. NO sanity hit, never stalks: pure paranoia (you only know it was
+-- fake after it's gone). Frequency scaled by the Haunt Deck `falseFreq` card.
+MBT.Hallucinations = {
+    Enabled          = true,
+    SanityBelow      = 40,    -- only fire when sanity is under this
+    CheckMs          = 6000,  -- roll interval
+    Chance           = 30,    -- % per roll (×haunt.falseFreq)
+    SilhouetteChance = 55,    -- % silhouette vs phantom sound
+    Distance         = 14.0,  -- how far ahead the silhouette appears (m)
+    HoldMs           = 500,   -- how long it lingers before fading
+    Models           = nil,   -- nil = reuse MBT.Entities.Models (looks like the real one)
+    Sound            = { File = 'tape_warble', Volume = 0.4 },
+}
+
+-- The Mimic: sometimes the "entity" wears the shape of another LOST PLAYER — a fake
+-- nametag, a survivor model, standing down the hall. Approach it or stare too long and
+-- it REVEALS (reality-jolt + sanity hit + a lunge) then vanishes. Ties to the shared
+-- world + first-contact. It's a variant of the glimpse (shares the encounter slot).
+MBT.Mimic = {
+    Enabled        = true,
+    Chance         = 25,   -- % of encounters that are a Mimic instead of a glimpse
+    Models         = { 's_m_y_dealer_01', 'a_m_m_hillbilly_01', 'g_m_y_lost_01', 'a_m_y_stwhi_01' },
+    FakeNames      = { 'survivor', 'lost_04', 'M.E.G.', 'unknown', '???', 'anybody?' },
+    RevealRange    = 6.0,   -- approach within this -> it reveals
+    StareRevealSec = 2.5,   -- or stare this long -> it reveals
+    TimeoutSec     = 18,    -- if you neither approach nor stare, it just leaves
+}
+
 -------------------------------------------------------------------------------
 -- [ SECTION 5: ENTITIES ] --
 -------------------------------------------------------------------------------

@@ -8,6 +8,11 @@
 local cfg = MBT.Entities
 local activePed = nil
 local silenced = false -- Dynamic Silence: ambient ducked for this glimpse
+local mimicTag = nil   -- The Mimic: fake gamer-tag id (removed on cleanup)
+
+-- Exposed so other systems (hallucinations) don't overlap a live encounter.
+Entities = Entities or {}
+function Entities.IsActive() return activePed ~= nil end
 
 -- Restore the ambient if this glimpse ducked it (idempotent).
 local function restoreAmbient()
@@ -23,6 +28,7 @@ local function cleanup()
         DeleteEntity(activePed)
     end
     activePed = nil
+    if mimicTag then RemoveMpGamerTag(mimicTag); mimicTag = nil end
     restoreAmbient()
     SendNUIMessage({ action = 'entity:strain', data = { level = 0 } }) -- clear any tunnel-vision
 end
@@ -281,6 +287,95 @@ local function spawnGlimpse()
     vanish()
 end
 
+-- The Mimic: the entity wears another lost player's shape (fake nametag + survivor
+-- model) at mid distance. Approaching it or staring too long makes it REVEAL —
+-- reality-jolt + sanity hit + a lunge — then it vanishes. A variant of the glimpse.
+local function spawnMimic()
+    local mc = MBT.Mimic
+    local models = (mc and mc.Models) or cfg.Models
+    local model = models[math.random(1, #models)]
+    local hash = joaat(model)
+    if not IsModelInCdimage(hash) then MBTLog.Warn('mimic: model not in cdimage', model); return end
+    RequestModel(hash)
+    local t = 5000
+    while not HasModelLoaded(hash) and t > 0 do Wait(50); t = t - 50 end
+    if not HasModelLoaded(hash) then MBTLog.Warn('mimic: model failed to load', model); return end
+
+    local spawn = findPlacement()
+    if not spawn then
+        MBTLog.Debug('mimic: no clear placement')
+        SetModelAsNoLongerNeeded(hash)
+        return
+    end
+
+    activePed = CreatePed(4, hash, spawn.x, spawn.y, spawn.z, 0.0, false, false)
+    SetModelAsNoLongerNeeded(hash)
+    SetEntityAsMissionEntity(activePed, true, true)
+    SetPedDefaultComponentVariation(activePed)
+    SetEntityInvincible(activePed, true)
+    SetEntityCanBeDamaged(activePed, false)
+    SetBlockingOfNonTemporaryEvents(activePed, true)
+    FreezeEntityPosition(activePed, true)
+
+    local cam = GetGameplayCamCoord()
+    SetEntityHeading(activePed, GetHeadingFromVector_2d(cam.x - spawn.x, cam.y - spawn.y))
+
+    -- Fake nametag so at a distance it reads as a real lost player.
+    local names = (mc and mc.FakeNames) or { 'survivor' }
+    mimicTag = CreateFakeMpGamerTag(activePed, names[math.random(1, #names)], false, false, '', 0)
+    SetMpGamerTagVisibility(mimicTag, 0, true) -- 0 = the name component
+
+    MBTLog.Debug('mimic spawned', model)
+
+    local revealRange = (mc and mc.RevealRange) or 6.0
+    local stareReveal = (mc and mc.StareRevealSec) or 2.5
+    local cosGaze = math.cos(math.rad(cfg.GazeAngle or 14.0))
+    local deadline = GetGameTimer() + ((mc and mc.TimeoutSec) or 18) * 1000
+    local stare, lastTick = 0.0, GetGameTimer()
+
+    while activePed and DoesEntityExist(activePed) do
+        local now = GetGameTimer()
+        local dt = (now - lastTick) / 1000.0
+        lastTick = now
+        local ec = GetEntityCoords(activePed)
+        local ply = GetEntityCoords(PlayerPedId())
+        local camPos = GetGameplayCamCoord()
+
+        -- Looking at it?
+        local torso = vector3(ec.x, ec.y, ec.z + 1.0)
+        local dir = torso - camPos
+        local len = #(dir)
+        local looked = false
+        if len > 0.0 then
+            dir = dir / len
+            local fwd = rotToDir(GetGameplayCamRot(2))
+            looked = (fwd.x * dir.x + fwd.y * dir.y + fwd.z * dir.z) > cosGaze
+        end
+        stare = looked and (stare + dt) or 0.0
+
+        -- Reveal: got too close OR stared it down.
+        if #(ply - ec) < revealRange or stare >= stareReveal then
+            if Atmosphere and Atmosphere.EntryFx then Atmosphere.EntryFx() end -- the "it's WRONG" jolt
+            TriggerServerEvent('mbt_backrooms:glimpseSeen')                     -- sanity hit
+            local to = ply - ec
+            local dd = #(to)
+            if dd > 0.5 then -- lunge as it reveals (hidden by the blink black-out)
+                local step = math.min(3.0, dd - 0.5)
+                local np = ec + (to / dd) * step
+                SetEntityCoordsNoOffset(activePed, np.x, np.y, np.z, false, false, false)
+            end
+            SendNUIMessage({ action = 'entity:blink', data = { durationMs = 220 } })
+            Wait(140)
+            break
+        end
+
+        if now >= deadline then break end
+        Wait(60)
+    end
+
+    vanish()
+end
+
 CreateThread(function()
     if not cfg.Enabled then return end
     local lastGlimpse = 0
@@ -302,7 +397,12 @@ CreateThread(function()
                 and (GetGameTimer() - lastGlimpse) > (cfg.CooldownSec or 90) * cdMult * 1000
                 and math.random(1, 100) <= chance then
                 lastGlimpse = GetGameTimer()
-                spawnGlimpse()
+                local mc = MBT.Mimic
+                if mc and mc.Enabled and math.random(1, 100) <= (mc.Chance or 25) then
+                    spawnMimic()
+                else
+                    spawnGlimpse()
+                end
             end
         end
         Wait(sleep)
@@ -327,6 +427,15 @@ if MBT.Debug then
             spawnGlimpse()
         else
             MBTLog.Debug('brglimpse: must be inside a level (and none active)')
+        end
+    end, false)
+
+    -- Debug: force a Mimic (fake-player entity) now.
+    RegisterCommand('brmimic', function()
+        if LocalPlayer.state['mbt_backrooms:inLevel'] and not activePed then
+            spawnMimic()
+        else
+            MBTLog.Debug('brmimic: must be inside a level (and none active)')
         end
     end, false)
 
