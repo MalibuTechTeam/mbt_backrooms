@@ -189,6 +189,14 @@ MBT.HauntDeck = {
     },
 }
 
+-- Dynamic Silence: a glimpse can be preceded by the ambient (hum/drone) fading to
+-- silence — contrast scares more than noise, and the entity's cue cuts through the
+-- vacuum. Chance is scaled by the Haunt Deck `silence` card; ambient always restores.
+MBT.DynamicSilence = {
+    Enabled = true,
+    Chance  = 55, -- % of glimpses preceded by silence (×haunt.silence)
+}
+
 -------------------------------------------------------------------------------
 -- [ SECTION 5: ENTITIES ] --
 -------------------------------------------------------------------------------

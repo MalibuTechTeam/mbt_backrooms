@@ -95,6 +95,12 @@ export default function App() {
     atmosphereAudio.playOneShot(d?.file || 'entry', d?.volume ?? 0.7),
   )
 
+  // Dynamic Silence: drop the ambient before a scare, restore it after.
+  useNuiEvent<{ on?: boolean }>('atmosphere:silence', (d) => {
+    if (d?.on) atmosphereAudio.duck()
+    else atmosphereAudio.unduck()
+  })
+
   // Don't-Blink: focus-drain tunnel vision + the forced blink black-out.
   useNuiEvent<{ level?: number }>('entity:strain', (d) => setStrain(d?.level ?? 0))
   useNuiEvent<{ durationMs?: number }>('entity:blink', (d) => {

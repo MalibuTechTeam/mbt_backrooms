@@ -15,6 +15,7 @@ const clamp = (v: number) => Math.max(0, Math.min(1, v))
 class AtmosphereAudio {
   private loops: Partial<Record<LoopName, HTMLAudioElement>> = {}
   private timers: Partial<Record<LoopName, number>> = {}
+  private ducked: Partial<Record<LoopName, number>> = {}
 
   /** Start the loop at `volume`, or stop it when volume is false/undefined. */
   setLoop(name: LoopName, volume: number | false | undefined) {
@@ -46,6 +47,28 @@ class AtmosphereAudio {
 
   stopLoops() {
     ;(['hum', 'drone'] as LoopName[]).forEach((n) => this.stop(n))
+  }
+
+  /** Dynamic Silence: fade the ambient loops to silence, remembering their volumes. */
+  duck(ms = 700) {
+    ;(['hum', 'drone'] as LoopName[]).forEach((n) => {
+      const a = this.loops[n]
+      if (a && this.ducked[n] === undefined) {
+        this.ducked[n] = a.volume
+        this.fade(n, 0, ms)
+      }
+    })
+  }
+
+  /** Restore the ambient loops to their pre-duck volumes. */
+  unduck(ms = 1400) {
+    ;(['hum', 'drone'] as LoopName[]).forEach((n) => {
+      const v = this.ducked[n]
+      if (v !== undefined) {
+        delete this.ducked[n]
+        this.fade(n, v, ms)
+      }
+    })
   }
 
   playEntry(volume: number) {

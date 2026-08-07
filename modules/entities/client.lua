@@ -7,6 +7,15 @@
 
 local cfg = MBT.Entities
 local activePed = nil
+local silenced = false -- Dynamic Silence: ambient ducked for this glimpse
+
+-- Restore the ambient if this glimpse ducked it (idempotent).
+local function restoreAmbient()
+    if silenced then
+        SendNUIMessage({ action = 'atmosphere:silence', data = { on = false } })
+        silenced = false
+    end
+end
 
 local function cleanup()
     if activePed and DoesEntityExist(activePed) then
@@ -14,6 +23,7 @@ local function cleanup()
         DeleteEntity(activePed)
     end
     activePed = nil
+    restoreAmbient()
     SendNUIMessage({ action = 'entity:strain', data = { level = 0 } }) -- clear any tunnel-vision
 end
 
@@ -133,6 +143,18 @@ local function spawnGlimpse()
 
     TriggerServerEvent('mbt_backrooms:glimpseSeen')
     MBTLog.Debug('glimpse spawned', model, 'onScreen', IsEntityOnScreen(activePed))
+
+    -- Dynamic Silence: drop the ambient so the scare lands in a vacuum. Chance scaled
+    -- by this visit's Haunt Deck; the ambient is always restored in cleanup().
+    local ds = MBT.DynamicSilence
+    if ds and ds.Enabled and not silenced then
+        local haunt = LocalPlayer.state['mbt_backrooms:haunt']
+        local silChance = (ds.Chance or 55) * ((haunt and haunt.silence) or 1.0)
+        if math.random(1, 100) <= silChance then
+            silenced = true
+            SendNUIMessage({ action = 'atmosphere:silence', data = { on = true } })
+        end
+    end
 
     local snd = cfg.Sound
     if snd and snd.OnSpawn then
