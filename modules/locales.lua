@@ -1,6 +1,8 @@
 MBT = MBT or {}
 Locales = Locales or {}
 
+local loggedLang = nil -- dedup: RefreshLocale runs several times (SetTimeout + core/client)
+
 local function setLocale(lang)
     lang = lang or 'en'
     if not Locales[lang] then
@@ -13,7 +15,12 @@ local function setLocale(lang)
         MBT.Locale = Locales['en'] or (next(Locales) ~= nil and Locales[next(Locales)]) or {}
     else
         MBT.Locale = Locales[lang]
-        if MBTLog then MBTLog.Debug('Language set to', lang) end -- self-gated by MBT.Debug + proper badge
+        -- Log once per runtime (skip the redundant refreshes); tag the side so the
+        -- server + client lines read as two runtimes, not a duplicate.
+        if MBTLog and lang ~= loggedLang then
+            loggedLang = lang
+            MBTLog.Debug('Language set to', lang, IsDuplicityVersion() and '(server)' or '(client)')
+        end
     end
 end
 
