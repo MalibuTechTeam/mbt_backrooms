@@ -217,13 +217,11 @@ MBT.Hallucinations = {
 -- it REVEALS (reality-jolt + sanity hit + a lunge) then vanishes. Ties to the shared
 -- world + first-contact. It's a variant of the glimpse (shares the encounter slot).
 MBT.Mimic = {
-    Enabled        = true,
-    Chance         = 25,   -- % of encounters that are a Mimic instead of a glimpse
-    Models         = { 's_m_y_dealer_01', 'a_m_m_hillbilly_01', 'g_m_y_lost_01', 'a_m_y_stwhi_01' },
-    FakeNames      = { 'survivor', 'lost_04', 'M.E.G.', 'unknown', '???', 'anybody?' },
-    RevealRange    = 6.0,   -- approach within this -> it reveals
-    StareRevealSec = 2.5,   -- or stare this long -> it reveals
-    TimeoutSec     = 18,    -- if you neither approach nor stare, it just leaves
+    Enabled     = true,
+    Chance      = 25,   -- % of encounters that are a Mimic instead of a glimpse
+    Models      = { 's_m_y_dealer_01', 'a_m_m_hillbilly_01', 'g_m_y_lost_01', 'a_m_y_stwhi_01' },
+    RevealRange = 6.0,  -- approach within this -> it reveals (jolt + sanity hit + lunge)
+    LingerSec   = 12,   -- if you don't approach, it turns and WALKS AWAY after this
 }
 
 -------------------------------------------------------------------------------

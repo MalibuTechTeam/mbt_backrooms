@@ -8,7 +8,6 @@
 local cfg = MBT.Entities
 local activePed = nil
 local silenced = false -- Dynamic Silence: ambient ducked for this glimpse
-local mimicTag = nil   -- The Mimic: fake gamer-tag id (removed on cleanup)
 
 -- Exposed so other systems (hallucinations) don't overlap a live encounter.
 Entities = Entities or {}
@@ -28,7 +27,6 @@ local function cleanup()
         DeleteEntity(activePed)
     end
     activePed = nil
-    if mimicTag then RemoveMpGamerTag(mimicTag); mimicTag = nil end
     restoreAmbient()
     SendNUIMessage({ action = 'entity:strain', data = { level = 0 } }) -- clear any tunnel-vision
 end
@@ -320,41 +318,18 @@ local function spawnMimic()
     local cam = GetGameplayCamCoord()
     SetEntityHeading(activePed, GetHeadingFromVector_2d(cam.x - spawn.x, cam.y - spawn.y))
 
-    -- Fake nametag so at a distance it reads as a real lost player.
-    local names = (mc and mc.FakeNames) or { 'survivor' }
-    mimicTag = CreateFakeMpGamerTag(activePed, names[math.random(1, #names)], false, false, '', 0)
-    SetMpGamerTagVisibility(mimicTag, 0, true) -- 0 = the name component
-
     MBTLog.Debug('mimic spawned', model)
 
     local revealRange = (mc and mc.RevealRange) or 6.0
-    local stareReveal = (mc and mc.StareRevealSec) or 2.5
-    local cosGaze = math.cos(math.rad(cfg.GazeAngle or 14.0))
-    local deadline = GetGameTimer() + ((mc and mc.TimeoutSec) or 18) * 1000
-    local stare, lastTick = 0.0, GetGameTimer()
+    local deadline = GetGameTimer() + ((mc and mc.LingerSec) or 12) * 1000
+    local leaving = false
 
     while activePed and DoesEntityExist(activePed) do
-        local now = GetGameTimer()
-        local dt = (now - lastTick) / 1000.0
-        lastTick = now
         local ec = GetEntityCoords(activePed)
         local ply = GetEntityCoords(PlayerPedId())
-        local camPos = GetGameplayCamCoord()
 
-        -- Looking at it?
-        local torso = vector3(ec.x, ec.y, ec.z + 1.0)
-        local dir = torso - camPos
-        local len = #(dir)
-        local looked = false
-        if len > 0.0 then
-            dir = dir / len
-            local fwd = rotToDir(GetGameplayCamRot(2))
-            looked = (fwd.x * dir.x + fwd.y * dir.y + fwd.z * dir.z) > cosGaze
-        end
-        stare = looked and (stare + dt) or 0.0
-
-        -- Reveal: got too close OR stared it down.
-        if #(ply - ec) < revealRange or stare >= stareReveal then
+        -- Approach it -> it REVEALS (the scare): jolt + sanity hit + a lunge, then gone.
+        if not leaving and #(ply - ec) < revealRange then
             if Atmosphere and Atmosphere.EntryFx then Atmosphere.EntryFx() end -- the "it's WRONG" jolt
             TriggerServerEvent('mbt_backrooms:glimpseSeen')                     -- sanity hit
             local to = ply - ec
@@ -365,15 +340,27 @@ local function spawnMimic()
                 SetEntityCoordsNoOffset(activePed, np.x, np.y, np.z, false, false, false)
             end
             SendNUIMessage({ action = 'entity:blink', data = { durationMs = 220 } })
-            Wait(140)
-            break
+            Wait(160)
+            vanish()
+            return
         end
 
-        if now >= deadline then break end
-        Wait(60)
-    end
+        -- Left alone -> it turns and WALKS AWAY like a real survivor (no on/off pop).
+        if not leaving and GetGameTimer() >= deadline then
+            leaving = true
+            FreezeEntityPosition(activePed, false)
+            local dir = ec - ply
+            local dl = #(dir)
+            dir = (dl > 0.1) and (dir / dl) or vector3(0.0, 1.0, 0.0)
+            local dest = ec + dir * 14.0
+            TaskGoStraightToCoord(activePed, dest.x, dest.y, dest.z, 1.0, 9000, 0.0, 0.0)
+            SetTimeout(7000, function()
+                if activePed and DoesEntityExist(activePed) then cleanup() end
+            end)
+        end
 
-    vanish()
+        Wait(80)
+    end
 end
 
 CreateThread(function()
@@ -445,8 +432,18 @@ if MBT.Debug then
         if type(h) ~= 'table' or not h.entityAggression then
             MBTLog.Debug('brhaunt: no haunt (must be inside a level)'); return
         end
-        MBTLog.Debug(('brhaunt: cards=%s | aggr=%.2f cd=%.2f sanity=%.2f false=%.2f silence=%.2f light=%.2f')
-            :format(table.concat(h.cards or {}, '+'), h.entityAggression or 1, h.entityCooldownMult or 1,
-                h.sanitySensitivity or 1, h.falseFreq or 1, h.silence or 1, h.lightInstability or 1))
+        -- Plain-language read of what this visit's cards actually bend.
+        local parts = {}
+        if h.entityAggression >= 1.15 then parts[#parts + 1] = 'entity AGGRESSIVE'
+        elseif h.entityAggression <= 0.85 then parts[#parts + 1] = 'entity calm' end
+        if (h.entityCooldownMult or 1) <= 0.8 then parts[#parts + 1] = 'shows up more often' end
+        if h.silence >= 1.4 then parts[#parts + 1] = 'heavy silence'
+        elseif h.silence <= 0.7 then parts[#parts + 1] = 'little silence' end
+        if h.falseFreq >= 1.4 then parts[#parts + 1] = 'high paranoia (hallucinations)'
+        elseif h.falseFreq <= 0.8 then parts[#parts + 1] = 'few hallucinations' end
+        if (h.sanitySensitivity or 1) >= 1.2 then parts[#parts + 1] = 'sanity drains faster' end
+        MBTLog.Debug(('brhaunt: [%s] -> %s'):format(
+            table.concat(h.cards or {}, '+'),
+            #parts > 0 and table.concat(parts, ', ') or 'neutral visit'))
     end, false)
 end
