@@ -170,6 +170,11 @@ local function spawnGlimpse()
     --   stalk mode   -> creep toward you while UNOBSERVED, freeze while looked at.
     -- Either way: reaching you (ApproachDist) or timeout ends it (sanity hit).
     local spawnAt = GetGameTimer()
+    -- This visit's Haunt Deck aggression bends the ENCOUNTER itself (approach speed +
+    -- Don't-Blink drain), so even a single glimpse FEELS hungry vs calm — not just how
+    -- OFTEN one appears. This is what makes the deck perceptible in play.
+    local haunt = LocalPlayer.state['mbt_backrooms:haunt']
+    local aggr = (haunt and haunt.entityAggression) or 1.0
     local maxSec = cfg.Approach and (cfg.ApproachTimeoutSec or 15) or (cfg.HoldSec or 6)
     local deadline = spawnAt + maxSec * 1000
     local hardCap = deadline + 8000 -- vanish even if still stared at, after this
@@ -247,7 +252,7 @@ local function spawnGlimpse()
                     FreezeEntityPosition(activePed, true)
                     -- Don't-Blink: staring drains focus; at zero you blink and it lunges.
                     if db and db.Enabled then
-                        focus = focus - (db.DrainPerSec or 0.5) * dt
+                        focus = focus - (db.DrainPerSec or 0.5) * aggr * dt
                         if focus <= 0.0 then
                             blinkLunge()
                             focus = db.FocusAfterBlink or 0.5
@@ -258,7 +263,7 @@ local function spawnGlimpse()
                     -- Unobserved: creep toward the player (re-tasked to track them).
                     FreezeEntityPosition(activePed, false)
                     if (now - lastTask) > 1000 then
-                        TaskGoStraightToCoord(activePed, ply.x, ply.y, ply.z, cfg.ApproachSpeed or 1.2, -1, 0.0, 0.0)
+                        TaskGoStraightToCoord(activePed, ply.x, ply.y, ply.z, (cfg.ApproachSpeed or 1.2) * aggr, -1, 0.0, 0.0)
                         moving = true
                         lastTask = now
                     end

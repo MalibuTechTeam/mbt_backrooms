@@ -31,7 +31,12 @@ end
 -------------------------------------------------------------------------------
 local function flickerLoop(gen)
     local cfg = A.Effects.LightFlicker
-    SetTimeout(math.random(cfg.minDelayMs, cfg.maxDelayMs), function()
+    -- Haunt Deck `lightInstability` shortens the gap between flickers (unstable visit).
+    local haunt = LocalPlayer.state['mbt_backrooms:haunt']
+    local inst = (haunt and haunt.lightInstability) or 1.0
+    local dmin = math.max(200, math.floor((cfg.minDelayMs or 3000) / inst))
+    local dmax = math.max(dmin + 100, math.floor((cfg.maxDelayMs or 10000) / inst))
+    SetTimeout(math.random(dmin, dmax), function()
         if gen ~= flickerGen then return end
         SetArtificialLightsState(true) -- lights OFF (blackout blink)
         SetTimeout(math.random(cfg.burstMinMs, cfg.burstMaxMs), function()
