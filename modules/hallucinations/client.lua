@@ -62,8 +62,10 @@ end
 -- Fire one false event (harmless — no glimpseSeen, so no sanity hit).
 local function fireError()
     if math.random(1, 100) <= (cfg.SilhouetteChance or 55) then
+        if MBT.Debug then MBTLog.Debug('hallucination: false silhouette') end
         falseSilhouette()
     else
+        if MBT.Debug then MBTLog.Debug('hallucination: phantom sound') end
         phantomSound()
     end
 end
