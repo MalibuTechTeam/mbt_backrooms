@@ -55,9 +55,55 @@
   100% { transform: translate(0, 0); }
 }
 
-/* Stop the grain jitter for OS reduced-motion AND the config toggle
-   (MBT.Atmosphere.ReduceMotion, passed as the .vhs--rm class). */
-@media (prefers-reduced-motion: reduce) {
-  .vhs-grain { animation: none; }
+/* Chroma bleed: a subtle static red/cyan edge separation — the analog "colour
+   bleed" of a worn tape (we can't RGB-split the game render from an overlay, so
+   this fakes it at the frame edges). Static, so it stays on under reduce-motion. */
+.vhs-chroma {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to right, rgba(255, 40, 60, 0.06), transparent 7%),
+    linear-gradient(to left, rgba(40, 190, 255, 0.06), transparent 7%);
+  opacity: calc(0.7 * var(--vhs-intensity, 1));
 }
-.vhs--rm .vhs-grain { animation: none; }
+
+/* Tracking band: an INTERMITTENT horizontal distortion line that sweeps down the
+   frame (like tape tracking loss), then is gone for ~15s. Invisible for most of the
+   cycle, so it reads as an occasional glitch, not a constant effect. Cheap: a single
+   gradient div moved by transform + opacity. */
+.vhs-tracking {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.05) 38%,
+    rgba(255, 255, 255, 0.11) 50%,
+    rgba(200, 200, 200, 0.05) 62%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  opacity: 0;
+  will-change: transform, opacity;
+  animation: vhs-track 17s linear infinite;
+}
+
+@keyframes vhs-track {
+  0%, 90%   { opacity: 0; transform: translateY(-70px); }
+  91%       { opacity: calc(0.9 * var(--vhs-intensity, 1)); transform: translateY(-70px); }
+  99.5%     { opacity: calc(0.6 * var(--vhs-intensity, 1)); transform: translateY(100vh); }
+  100%      { opacity: 0; transform: translateY(100vh); }
+}
+
+/* Stop the moving layers for OS reduced-motion AND the config toggle
+   (MBT.Atmosphere.ReduceMotion, passed as the .vhs--rm class). The static chroma
+   layer stays. */
+@media (prefers-reduced-motion: reduce) {
+  .vhs-grain,
+  .vhs-tracking { animation: none; }
+  .vhs-tracking { opacity: 0; }
+}
+.vhs--rm .vhs-grain,
+.vhs--rm .vhs-tracking { animation: none; }
+.vhs--rm .vhs-tracking { opacity: 0; }
