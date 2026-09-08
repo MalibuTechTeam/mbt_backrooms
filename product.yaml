@@ -1,0 +1,11 @@
+schema_version: 1
+product_id: mbt-backrooms
+kind: fivem-script
+owner: malibutech
+repository: MalibuTechTeam/mbt_backrooms
+runtime_resource_name: mbt_backrooms
+commercial_model: free
+store_id: "5345681"
+documentation_slug: mbt-backrooms
+display_name: MBT Backrooms
+lifecycle: in-development
